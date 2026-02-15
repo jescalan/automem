@@ -1411,6 +1411,18 @@ def handle_recall(
             ]
         results = seed_results + expansion_results + entity_expansion_results
 
+    # LLM reranking — final pass to score actual relevance
+    try:
+        from automem.search.rerank import rerank as llm_rerank, RERANK_ENABLED
+        if RERANK_ENABLED and query_text and results:
+            openai_client = get_openai_client()
+            if openai_client is not None:
+                results = llm_rerank(query_text, results, openai_client)
+    except ImportError:
+        pass
+    except Exception:
+        logger.debug("LLM rerank skipped", exc_info=True)
+
     response = {
         "status": "success",
         "query": query_text,
@@ -1439,6 +1451,13 @@ def handle_recall(
                 _extract_entities_from_results(seed_results + expansion_results)
             )[:10],
         }
+    # Report rerank status
+    try:
+        from automem.search.rerank import RERANK_ENABLED
+        response["rerank"] = {"enabled": RERANK_ENABLED}
+    except ImportError:
+        pass
+
     if is_multi:
         response["queries"] = queries_to_run
     if query_text and not is_multi:
