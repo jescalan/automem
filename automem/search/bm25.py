@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 BM25_ENABLED = os.environ.get("BM25_ENABLED", "true").lower() in ("1", "true", "yes")
-BM25_DB_PATH = os.environ.get("BM25_DB_PATH", "/data/bm25_index.db")
+BM25_DB_PATH = os.environ.get("BM25_DB_PATH", "/app/data/bm25_index.db")
 
 # RRF constant (k) — higher = less emphasis on top ranks
 RRF_K = int(os.environ.get("BM25_RRF_K", "60"))
