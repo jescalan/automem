@@ -967,6 +967,7 @@ def handle_recall(
     relation_limit: Optional[int] = None,
     expansion_limit_default: Optional[int] = None,
     on_access: Optional[Callable[[List[str]], None]] = None,
+    get_openai_client: Optional[Callable[[], Any]] = None,
 ):
     query_start = time.perf_counter()
     query_text = (request.args.get("query") or "").strip()
@@ -1166,22 +1167,71 @@ def handle_recall(
                         res, start_time, end_time, tag_filters, tag_mode, tag_match, exclude_tags
                     )
                 ]
-        local_results.extend(vector_matches[:per_query_limit])
 
-        remaining_slots = max(0, per_query_limit - len(local_results))
-        if remaining_slots and graph is not None:
+        graph_matches: List[Dict[str, Any]] = []
+        if graph is not None:
+            # Use a separate seen set so graph search isn't blocked by vector results
+            graph_seen: set[str] = set()
             graph_matches = graph_keyword_search(
                 graph,
                 query_str,
-                remaining_slots,
-                local_seen,
+                per_query_limit,
+                graph_seen,
                 start_time=start_time,
                 end_time=end_time,
                 tag_filters=tag_filters,
                 tag_mode=tag_mode,
                 tag_match=tag_match,
             )
-            local_results.extend(graph_matches[:remaining_slots])
+
+        # BM25 full-text search (complements vector + graph keyword)
+        bm25_matches: List[Dict[str, Any]] = []
+        try:
+            from automem.search.bm25 import search as bm25_search, BM25_ENABLED, fuse_rrf
+            if BM25_ENABLED and query_str:
+                bm25_seen: set[str] = set()
+                bm25_matches = bm25_search(
+                    query_str,
+                    limit=per_query_limit,
+                    seen_ids=bm25_seen,
+                    tag_filters=tag_filters,
+                )
+                if start_time or end_time or exclude_tags:
+                    bm25_matches = [
+                        res for res in bm25_matches
+                        if result_passes_filters(
+                            res, start_time, end_time, tag_filters, tag_mode, tag_match, exclude_tags
+                        )
+                    ]
+        except ImportError:
+            pass
+        except Exception:
+            import logging as _logging
+            _logging.getLogger(__name__).debug("BM25 recall search failed", exc_info=True)
+
+        # Fuse all sources via RRF if BM25 is active, otherwise fall back to sequential merge
+        if bm25_matches:
+            try:
+                from automem.search.bm25 import fuse_rrf
+                local_results = fuse_rrf(
+                    vector_matches[:per_query_limit],
+                    graph_matches[:per_query_limit],
+                    bm25_matches[:per_query_limit],
+                )[:per_query_limit]
+                # Update local_seen with all IDs from fused results
+                for r in local_results:
+                    mid = r.get("memory_id") or r.get("id") or ""
+                    if mid:
+                        local_seen.add(mid)
+            except Exception:
+                # Fall back to sequential merge
+                local_results.extend(vector_matches[:per_query_limit])
+                remaining = max(0, per_query_limit - len(local_results))
+                local_results.extend(graph_matches[:remaining])
+        else:
+            local_results.extend(vector_matches[:per_query_limit])
+            remaining = max(0, per_query_limit - len(local_results))
+            local_results.extend(graph_matches[:remaining])
 
         tags_only_request = (
             not query_str
@@ -1415,9 +1465,9 @@ def handle_recall(
     try:
         from automem.search.rerank import rerank as llm_rerank, RERANK_ENABLED
         if RERANK_ENABLED and query_text and results:
-            openai_client = get_openai_client()
-            if openai_client is not None:
-                results = llm_rerank(query_text, results, openai_client)
+            # Pass main client if available; reranker also has its own dedicated client
+            openai_client = get_openai_client() if get_openai_client is not None else None
+            results = llm_rerank(query_text, results, openai_client)
     except ImportError:
         pass
     except Exception:

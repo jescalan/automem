@@ -24,7 +24,45 @@ logger = logging.getLogger(__name__)
 RERANK_ENABLED = os.environ.get("RERANK_ENABLED", "true").lower() in ("1", "true", "yes")
 RERANK_MODEL = os.environ.get("RERANK_MODEL", "gpt-4.1-nano")
 RERANK_TOP_N = int(os.environ.get("RERANK_TOP_N", "20"))  # How many candidates to rerank
-RERANK_TIMEOUT = float(os.environ.get("RERANK_TIMEOUT", "5.0"))  # Seconds
+RERANK_TIMEOUT = float(os.environ.get("RERANK_TIMEOUT", "15.0"))  # Seconds
+# Separate API key/base for reranking (falls back to main OpenAI client if not set)
+RERANK_API_KEY = os.environ.get("RERANK_API_KEY", "")
+RERANK_BASE_URL = os.environ.get("RERANK_BASE_URL", "")
+
+_rerank_client: Any = None
+_rerank_client_type: str = ""  # "anthropic" or "openai"
+
+
+def _get_rerank_client() -> Any:
+    """Get or create a dedicated client for reranking."""
+    global _rerank_client, _rerank_client_type
+    if _rerank_client is not None:
+        return _rerank_client
+    if not RERANK_API_KEY:
+        return None
+
+    # Detect Anthropic key
+    if RERANK_API_KEY.startswith("sk-ant-"):
+        try:
+            import anthropic
+            _rerank_client = anthropic.Anthropic(api_key=RERANK_API_KEY)
+            _rerank_client_type = "anthropic"
+            return _rerank_client
+        except ImportError:
+            logger.warning("anthropic package not installed for reranking")
+            return None
+    else:
+        try:
+            from openai import OpenAI
+            kwargs: Dict[str, Any] = {"api_key": RERANK_API_KEY}
+            if RERANK_BASE_URL:
+                kwargs["base_url"] = RERANK_BASE_URL
+            _rerank_client = OpenAI(**kwargs)
+            _rerank_client_type = "openai"
+            return _rerank_client
+        except Exception:
+            logger.warning("Failed to create rerank OpenAI client", exc_info=True)
+            return None
 
 SYSTEM_PROMPT = """You are a memory relevance scorer. Given a search query and a list of memory snippets, score each snippet's relevance to the query on a scale of 0-10.
 
@@ -60,7 +98,12 @@ def rerank(
     Returns:
         Reordered results list with 'rerank_score' added to each result
     """
-    if not RERANK_ENABLED or not results or not query or openai_client is None:
+    if not RERANK_ENABLED or not results or not query:
+        return results
+
+    # Try dedicated rerank client first, then fall back to passed-in client
+    client = _get_rerank_client() or openai_client
+    if client is None:
         return results
 
     model = model or RERANK_MODEL
@@ -82,28 +125,43 @@ def rerank(
     try:
         t0 = time.monotonic()
 
-        extra_params: Dict[str, Any] = {}
-        if model.startswith(("o", "gpt-5")):
-            extra_params["max_completion_tokens"] = 500
+        # Route to appropriate API
+        if _rerank_client_type == "anthropic" and client is not None and hasattr(client, 'messages'):
+            response = client.messages.create(
+                model=model,
+                max_tokens=500,
+                system=SYSTEM_PROMPT,
+                messages=[
+                    {"role": "user", "content": user_prompt + "\n\nRespond with ONLY a JSON array, no other text."},
+                ],
+                timeout=RERANK_TIMEOUT,
+            )
+            elapsed_ms = (time.monotonic() - t0) * 1000
+            raw = response.content[0].text.strip()
         else:
-            extra_params["max_tokens"] = 500
-            extra_params["temperature"] = 0.0
+            # OpenAI-compatible path
+            extra_params: Dict[str, Any] = {"max_tokens": 500}
+            if not model.startswith(("o", "gpt-5")):
+                extra_params["temperature"] = 0.0
 
-        response = openai_client.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": user_prompt},
-            ],
-            response_format={"type": "json_object"},
-            timeout=RERANK_TIMEOUT,
-            **extra_params,
-        )
+            response = client.chat.completions.create(
+                model=model,
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": user_prompt + "\n\nRespond with ONLY a JSON array, no other text."},
+                ],
+                timeout=RERANK_TIMEOUT,
+                **extra_params,
+            )
+            elapsed_ms = (time.monotonic() - t0) * 1000
+            raw = response.choices[0].message.content.strip()
 
-        elapsed_ms = (time.monotonic() - t0) * 1000
-        raw = response.choices[0].message.content
+        # Extract JSON from response (may have markdown fences or preamble)
+        import re as _re
+        json_match = _re.search(r'[\[{].*[\]}]', raw, _re.DOTALL)
+        if json_match:
+            raw = json_match.group(0)
 
-        # Parse scores — handle both {"results": [...]} and bare [...]
         parsed = json.loads(raw)
         if isinstance(parsed, dict):
             scores_list = parsed.get("results") or parsed.get("scores") or parsed.get("rankings") or []
