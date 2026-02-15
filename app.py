@@ -2790,6 +2790,13 @@ def store_memory() -> Any:
         utc_now,
     )
 
+    # BM25 full-text index
+    try:
+        from automem.search.bm25 import index_memory as bm25_index
+        bm25_index(memory_id, content, tags, memory_type, created_at)
+    except Exception:
+        logger.debug("BM25 index_memory skipped", exc_info=True)
+
     return jsonify(response), 201
 
 
@@ -2941,6 +2948,13 @@ def delete_memory(memory_id: str) -> Any:
             qdrant_client.delete(collection_name=COLLECTION_NAME, points_selector=selector)
         except Exception:
             logger.exception("Failed to delete vector for memory %s", memory_id)
+
+    # BM25 cleanup
+    try:
+        from automem.search.bm25 import remove_memory as bm25_remove
+        bm25_remove(memory_id)
+    except Exception:
+        logger.debug("BM25 remove_memory skipped", exc_info=True)
 
     return jsonify({"status": "success", "memory_id": memory_id})
 
@@ -3814,6 +3828,31 @@ app.register_blueprint(recall_bp)
 app.register_blueprint(consolidation_bp)
 app.register_blueprint(graph_bp)
 app.register_blueprint(stream_bp)
+
+
+# ---------------------------------------------------------------------------
+# BM25 backfill endpoint
+# ---------------------------------------------------------------------------
+
+@app.route("/bm25/backfill", methods=["POST"])
+def bm25_backfill() -> Any:
+    """Backfill the BM25 FTS index from all memories in FalkorDB."""
+    try:
+        from automem.search.bm25 import backfill_from_graph, BM25_ENABLED, get_index_count
+        if not BM25_ENABLED:
+            return jsonify({"error": "BM25 is disabled (set BM25_ENABLED=true)"}), 400
+        graph = get_memory_graph()
+        if graph is None:
+            return jsonify({"error": "FalkorDB unavailable"}), 503
+        count = backfill_from_graph(graph)
+        return jsonify({
+            "status": "success",
+            "indexed": count,
+            "total_in_index": get_index_count(),
+        })
+    except Exception as e:
+        logger.exception("BM25 backfill failed")
+        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == "__main__":

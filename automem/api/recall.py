@@ -1183,6 +1183,31 @@ def handle_recall(
             )
             local_results.extend(graph_matches[:remaining_slots])
 
+        # BM25 full-text search (complements vector + graph keyword)
+        try:
+            from automem.search.bm25 import search as bm25_search, BM25_ENABLED
+            if BM25_ENABLED and query_str:
+                bm25_matches = bm25_search(
+                    query_str,
+                    limit=per_query_limit,
+                    seen_ids=local_seen,
+                    tag_filters=tag_filters,
+                )
+                if start_time or end_time or exclude_tags:
+                    bm25_matches = [
+                        res for res in bm25_matches
+                        if result_passes_filters(
+                            res, start_time, end_time, tag_filters, tag_mode, tag_match, exclude_tags
+                        )
+                    ]
+                remaining_bm25 = max(0, per_query_limit - len(local_results))
+                local_results.extend(bm25_matches[:remaining_bm25])
+        except ImportError:
+            pass
+        except Exception:
+            import logging as _logging
+            _logging.getLogger(__name__).debug("BM25 recall search failed", exc_info=True)
+
         tags_only_request = (
             not query_str
             and not (embedding_param and embedding_param.strip())
