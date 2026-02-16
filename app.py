@@ -3100,6 +3100,7 @@ def recall_memories() -> Any:
         allowed_relations=ALLOWED_RELATIONS,
         relation_limit=RECALL_RELATION_LIMIT,
         expansion_limit_default=RECALL_EXPANSION_LIMIT,
+        get_openai_client=get_openai_client,
     )
 
     # Emit SSE event for real-time monitoring

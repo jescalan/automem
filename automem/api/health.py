@@ -87,6 +87,17 @@ def create_health_blueprint(
             "timestamp": utc_now(),
             "graph": graph_name,
         }
+
+        # BM25 status
+        try:
+            from automem.search.bm25 import BM25_ENABLED, get_index_count
+            health_data["bm25"] = {
+                "enabled": BM25_ENABLED,
+                "indexed": get_index_count() if BM25_ENABLED else 0,
+            }
+        except Exception:
+            health_data["bm25"] = {"enabled": False, "error": "import_failed"}
+
         return jsonify(health_data)
 
     return bp

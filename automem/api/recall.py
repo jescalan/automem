@@ -967,6 +967,7 @@ def handle_recall(
     relation_limit: Optional[int] = None,
     expansion_limit_default: Optional[int] = None,
     on_access: Optional[Callable[[List[str]], None]] = None,
+    get_openai_client: Optional[Callable[[], Any]] = None,
 ):
     query_start = time.perf_counter()
     query_text = (request.args.get("query") or "").strip()
@@ -1166,22 +1167,71 @@ def handle_recall(
                         res, start_time, end_time, tag_filters, tag_mode, tag_match, exclude_tags
                     )
                 ]
-        local_results.extend(vector_matches[:per_query_limit])
 
-        remaining_slots = max(0, per_query_limit - len(local_results))
-        if remaining_slots and graph is not None:
+        graph_matches: List[Dict[str, Any]] = []
+        if graph is not None:
+            # Use a separate seen set so graph search isn't blocked by vector results
+            graph_seen: set[str] = set()
             graph_matches = graph_keyword_search(
                 graph,
                 query_str,
-                remaining_slots,
-                local_seen,
+                per_query_limit,
+                graph_seen,
                 start_time=start_time,
                 end_time=end_time,
                 tag_filters=tag_filters,
                 tag_mode=tag_mode,
                 tag_match=tag_match,
             )
-            local_results.extend(graph_matches[:remaining_slots])
+
+        # BM25 full-text search (complements vector + graph keyword)
+        bm25_matches: List[Dict[str, Any]] = []
+        try:
+            from automem.search.bm25 import search as bm25_search, BM25_ENABLED, fuse_rrf
+            if BM25_ENABLED and query_str:
+                bm25_seen: set[str] = set()
+                bm25_matches = bm25_search(
+                    query_str,
+                    limit=per_query_limit,
+                    seen_ids=bm25_seen,
+                    tag_filters=tag_filters,
+                )
+                if start_time or end_time or exclude_tags:
+                    bm25_matches = [
+                        res for res in bm25_matches
+                        if result_passes_filters(
+                            res, start_time, end_time, tag_filters, tag_mode, tag_match, exclude_tags
+                        )
+                    ]
+        except ImportError:
+            pass
+        except Exception:
+            import logging as _logging
+            _logging.getLogger(__name__).debug("BM25 recall search failed", exc_info=True)
+
+        # Fuse all sources via RRF if BM25 is active, otherwise fall back to sequential merge
+        if bm25_matches:
+            try:
+                from automem.search.bm25 import fuse_rrf
+                local_results = fuse_rrf(
+                    vector_matches[:per_query_limit],
+                    graph_matches[:per_query_limit],
+                    bm25_matches[:per_query_limit],
+                )[:per_query_limit]
+                # Update local_seen with all IDs from fused results
+                for r in local_results:
+                    mid = r.get("memory_id") or r.get("id") or ""
+                    if mid:
+                        local_seen.add(mid)
+            except Exception:
+                # Fall back to sequential merge
+                local_results.extend(vector_matches[:per_query_limit])
+                remaining = max(0, per_query_limit - len(local_results))
+                local_results.extend(graph_matches[:remaining])
+        else:
+            local_results.extend(vector_matches[:per_query_limit])
+            remaining = max(0, per_query_limit - len(local_results))
+            local_results.extend(graph_matches[:remaining])
 
         tags_only_request = (
             not query_str
@@ -1294,13 +1344,34 @@ def handle_recall(
             for topic in topics[:3]:
                 decomposed_queries.append(topic)
 
-    is_multi = bool(multi_queries) or bool(decomposed_queries)
+    # LLM query expansion — generate alternative phrasings before searching
+    expanded_queries: List[str] = []
+    expand_enabled_param = _parse_bool_param(
+        request.args.get("expand_query") or request.args.get("query_expansion"),
+        True,  # Enabled by default
+    )
+    if expand_enabled_param and query_text and not multi_queries and query_text != "*":
+        try:
+            from automem.search.query_expand import expand_query as llm_expand, EXPAND_ENABLED
+            if EXPAND_ENABLED:
+                expanded_queries = llm_expand(query_text, get_openai_client() if get_openai_client else None)
+                if expanded_queries:
+                    logger.info("Query expansion: %r → %s", query_text[:50], expanded_queries)
+        except ImportError:
+            pass
+        except Exception:
+            logger.debug("Query expansion failed", exc_info=True)
+
+    is_multi = bool(multi_queries) or bool(decomposed_queries) or bool(expanded_queries)
     queries_to_run: List[str] = [q for q in multi_queries if q]
 
     # Add decomposed queries if auto_decompose is enabled
     if decomposed_queries:
         # Original query first, then decomposed variations
         queries_to_run = [query_text] + decomposed_queries
+    elif expanded_queries:
+        # Original query first, then LLM-expanded alternatives
+        queries_to_run = [query_text] + expanded_queries
     elif not queries_to_run and query_text:
         queries_to_run = [query_text]
     if not queries_to_run:
@@ -1411,6 +1482,18 @@ def handle_recall(
             ]
         results = seed_results + expansion_results + entity_expansion_results
 
+    # LLM reranking — final pass to score actual relevance
+    try:
+        from automem.search.rerank import rerank as llm_rerank, RERANK_ENABLED
+        if RERANK_ENABLED and query_text and results:
+            # Pass main client if available; reranker also has its own dedicated client
+            openai_client = get_openai_client() if get_openai_client is not None else None
+            results = llm_rerank(query_text, results, openai_client)
+    except ImportError:
+        pass
+    except Exception:
+        logger.debug("LLM rerank skipped", exc_info=True)
+
     response = {
         "status": "success",
         "query": query_text,
@@ -1439,6 +1522,23 @@ def handle_recall(
                 _extract_entities_from_results(seed_results + expansion_results)
             )[:10],
         }
+    # Report rerank status
+    try:
+        from automem.search.rerank import RERANK_ENABLED
+        response["rerank"] = {"enabled": RERANK_ENABLED}
+    except ImportError:
+        pass
+
+    # Report query expansion status
+    try:
+        from automem.search.query_expand import EXPAND_ENABLED
+        response["query_expansion"] = {
+            "enabled": EXPAND_ENABLED,
+            "alternatives": expanded_queries if expanded_queries else [],
+        }
+    except ImportError:
+        pass
+
     if is_multi:
         response["queries"] = queries_to_run
     if query_text and not is_multi:
