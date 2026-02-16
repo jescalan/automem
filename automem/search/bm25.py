@@ -53,8 +53,7 @@ def _get_conn() -> sqlite3.Connection:
     conn.execute("PRAGMA synchronous=NORMAL")
 
     # Create tables if needed
-    conn.executescript(
-        """
+    conn.executescript("""
         CREATE TABLE IF NOT EXISTS memories (
             memory_id TEXT PRIMARY KEY,
             content   TEXT NOT NULL,
@@ -89,8 +88,7 @@ def _get_conn() -> sqlite3.Connection:
             INSERT INTO memories_fts(rowid, content, tags, type)
             VALUES (new.rowid, new.content, new.tags, new.type);
         END;
-        """
-    )
+        """)
     conn.commit()
 
     _local.conn = conn

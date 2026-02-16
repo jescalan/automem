@@ -22,7 +22,11 @@ logger = logging.getLogger(__name__)
 # Config
 # ---------------------------------------------------------------------------
 
-EXPAND_ENABLED = os.environ.get("QUERY_EXPAND_ENABLED", "true").lower() in ("1", "true", "yes")
+EXPAND_ENABLED = os.environ.get("QUERY_EXPAND_ENABLED", "true").lower() in (
+    "1",
+    "true",
+    "yes",
+)
 EXPAND_MODEL = os.environ.get("QUERY_EXPAND_MODEL", "gpt-4.1-nano")
 EXPAND_TIMEOUT = float(os.environ.get("QUERY_EXPAND_TIMEOUT", "10.0"))
 EXPAND_MAX_ALTERNATIVES = int(os.environ.get("QUERY_EXPAND_MAX", "3"))
@@ -52,6 +56,7 @@ def _get_expand_client() -> Any:
     if EXPAND_API_KEY.startswith("sk-ant-"):
         try:
             import anthropic
+
             _expand_client = anthropic.Anthropic(api_key=EXPAND_API_KEY)
             _expand_client_type = "anthropic"
             return _expand_client
@@ -61,6 +66,7 @@ def _get_expand_client() -> Any:
     else:
         try:
             from openai import OpenAI
+
             kwargs: Dict[str, Any] = {"api_key": EXPAND_API_KEY}
             if EXPAND_BASE_URL:
                 kwargs["base_url"] = EXPAND_BASE_URL
@@ -122,13 +128,20 @@ def expand_query(
     try:
         t0 = time.monotonic()
 
-        if _expand_client_type == "anthropic" and client is not None and hasattr(client, 'messages'):
+        if (
+            _expand_client_type == "anthropic"
+            and client is not None
+            and hasattr(client, "messages")
+        ):
             response = client.messages.create(
                 model=model,
                 max_tokens=200,
                 system=SYSTEM_PROMPT,
                 messages=[
-                    {"role": "user", "content": f"Query: {query}\n\nRespond with ONLY a JSON array of alternative queries."},
+                    {
+                        "role": "user",
+                        "content": f"Query: {query}\n\nRespond with ONLY a JSON array of alternative queries.",
+                    },
                 ],
                 timeout=EXPAND_TIMEOUT,
             )
@@ -136,13 +149,18 @@ def expand_query(
         else:
             extra_params: Dict[str, Any] = {"max_tokens": 200}
             if not model.startswith(("o", "gpt-5")):
-                extra_params["temperature"] = 0.7  # Some creativity for diverse alternatives
+                extra_params["temperature"] = (
+                    0.7  # Some creativity for diverse alternatives
+                )
 
             response = client.chat.completions.create(
                 model=model,
                 messages=[
                     {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user", "content": f"Query: {query}\n\nRespond with ONLY a JSON array of alternative queries."},
+                    {
+                        "role": "user",
+                        "content": f"Query: {query}\n\nRespond with ONLY a JSON array of alternative queries.",
+                    },
                 ],
                 timeout=EXPAND_TIMEOUT,
                 **extra_params,
@@ -153,7 +171,8 @@ def expand_query(
 
         # Extract JSON array
         import re as _re
-        json_match = _re.search(r'\[.*\]', raw, _re.DOTALL)
+
+        json_match = _re.search(r"\[.*\]", raw, _re.DOTALL)
         if json_match:
             raw = json_match.group(0)
 
@@ -186,5 +205,7 @@ def expand_query(
         return alternatives
 
     except Exception:
-        logger.warning("Query expansion failed, using original query only", exc_info=True)
+        logger.warning(
+            "Query expansion failed, using original query only", exc_info=True
+        )
         return []

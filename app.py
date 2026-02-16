@@ -37,7 +37,12 @@ except ImportError:  # Allow tests to import without full qdrant client installe
     UnexpectedResponse = Exception  # type: ignore[misc,assignment]
 
 try:  # Allow tests to import without full qdrant client installed
-    from qdrant_client.models import Distance, PayloadSchemaType, PointStruct, VectorParams
+    from qdrant_client.models import (
+        Distance,
+        PayloadSchemaType,
+        PointStruct,
+        VectorParams,
+    )
 except Exception:  # pragma: no cover - degraded import path
     try:
         from qdrant_client.http import models as _qmodels
@@ -187,11 +192,16 @@ from automem.utils.time import (
     _parse_time_expression,
     utc_now,
 )
-from automem.utils.validation import get_effective_vector_size, validate_vector_dimensions
+from automem.utils.validation import (
+    get_effective_vector_size,
+    validate_vector_dimensions,
+)
 
 # Embedding batching configuration
 EMBEDDING_BATCH_SIZE = int(os.getenv("EMBEDDING_BATCH_SIZE", "20"))
-EMBEDDING_BATCH_TIMEOUT_SECONDS = float(os.getenv("EMBEDDING_BATCH_TIMEOUT_SECONDS", "2.0"))
+EMBEDDING_BATCH_TIMEOUT_SECONDS = float(
+    os.getenv("EMBEDDING_BATCH_TIMEOUT_SECONDS", "2.0")
+)
 
 """Note: default types/relations/weights are imported from automem.config"""
 
@@ -283,10 +293,14 @@ def _result_passes_filters(
                 if not tag_set:
                     return False
                 if normalized_mode == "all":
-                    if not all(filter_tag in tag_set for filter_tag in normalized_filters):
+                    if not all(
+                        filter_tag in tag_set for filter_tag in normalized_filters
+                    ):
                         return False
                 else:
-                    if not any(filter_tag in tag_set for filter_tag in normalized_filters):
+                    if not any(
+                        filter_tag in tag_set for filter_tag in normalized_filters
+                    ):
                         return False
             else:
                 prefixes = memory.get("tag_prefixes") or []
@@ -312,10 +326,16 @@ def _result_passes_filters(
 
                 if prefix_set:
                     if normalized_mode == "all":
-                        if not all(filter_tag in prefix_set for filter_tag in normalized_filters):
+                        if not all(
+                            filter_tag in prefix_set
+                            for filter_tag in normalized_filters
+                        ):
                             return False
                     else:
-                        if not any(filter_tag in prefix_set for filter_tag in normalized_filters):
+                        if not any(
+                            filter_tag in prefix_set
+                            for filter_tag in normalized_filters
+                        ):
                             return False
                 else:
                     if not _tags_start_with():
@@ -388,7 +408,10 @@ def _graph_trending_results(
     """Return high-importance memories when no specific query is supplied."""
     try:
         sort_param = (
-            ((request.args.get("sort") or request.args.get("order_by") or "score") or "")
+            (
+                (request.args.get("sort") or request.args.get("order_by") or "score")
+                or ""
+            )
             .strip()
             .lower()
         )
@@ -432,7 +455,9 @@ def _graph_trending_results(
             continue
         # Use importance as a pseudo-score for ordering consistency
         importance = record["memory"].get("importance")
-        record["score"] = float(importance) if isinstance(importance, (int, float)) else 0.0
+        record["score"] = (
+            float(importance) if isinstance(importance, (int, float)) else 0.0
+        )
         record["match_score"] = record["score"]
         trending.append(record)
 
@@ -834,13 +859,17 @@ Return JSON with: {"type": "<type>", "confidence": <0.0-1.0>}"""
             # Normalize type (handles aliases and case variations)
             memory_type, was_normalized = normalize_memory_type(raw_type)
             if not memory_type:
-                logger.warning("LLM returned unmappable type '%s', using Context", raw_type)
+                logger.warning(
+                    "LLM returned unmappable type '%s', using Context", raw_type
+                )
                 return "Context", 0.5
 
             if was_normalized and memory_type != raw_type:
                 logger.debug("LLM type normalized '%s' -> '%s'", raw_type, memory_type)
 
-            logger.info("LLM classified as %s (confidence: %.2f)", memory_type, confidence)
+            logger.info(
+                "LLM classified as %s (confidence: %.2f)", memory_type, confidence
+            )
             return memory_type, confidence
 
         except Exception as exc:
@@ -866,7 +895,9 @@ def _get_spacy_nlp():  # type: ignore[return-type]
 
         try:
             _SPACY_NLP = spacy.load(ENRICHMENT_SPACY_MODEL)
-            logger.info("Loaded spaCy model '%s' for enrichment", ENRICHMENT_SPACY_MODEL)
+            logger.info(
+                "Loaded spaCy model '%s' for enrichment", ENRICHMENT_SPACY_MODEL
+            )
         except Exception:  # pragma: no cover - optional dependency
             logger.warning("Failed to load spaCy model '%s'", ENRICHMENT_SPACY_MODEL)
             _SPACY_NLP = None
@@ -908,7 +939,22 @@ def _is_valid_entity(
         return False
 
     # Reject strings starting with markdown/formatting or code characters
-    if cleaned[0] in {"-", "*", "#", ">", "|", "[", "]", "{", "}", "(", ")", "_", "'", '"'}:
+    if cleaned[0] in {
+        "-",
+        "*",
+        "#",
+        ">",
+        "|",
+        "[",
+        "]",
+        "{",
+        "}",
+        "(",
+        ")",
+        "_",
+        "'",
+        '"',
+    }:
         return False
 
     # Reject common code artifacts (suffixes that indicate class names)
@@ -1019,14 +1065,18 @@ def extract_entities(content: str) -> Dict[str, List[str]]:
 
     # Extract project names from "project called/named 'X'" pattern
     for match in re.findall(
-        r'(?:project|repo|repository)\s+(?:called|named)\s+"([^"]+)"', text, re.IGNORECASE
+        r'(?:project|repo|repository)\s+(?:called|named)\s+"([^"]+)"',
+        text,
+        re.IGNORECASE,
     ):
         cleaned = match.strip()
         if _is_valid_entity(cleaned, allow_lower=False, max_words=4):
             result["projects"].add(cleaned)
 
     # Extract project names from 'project "X"' pattern
-    for match in re.findall(r'(?:project|repo|repository)\s+"([^"]+)"', text, re.IGNORECASE):
+    for match in re.findall(
+        r'(?:project|repo|repository)\s+"([^"]+)"', text, re.IGNORECASE
+    ):
         cleaned = match.strip()
         if _is_valid_entity(cleaned, allow_lower=False, max_words=4):
             result["projects"].add(cleaned)
@@ -1037,14 +1087,19 @@ def extract_entities(content: str) -> Dict[str, List[str]]:
             result["projects"].add(cleaned)
 
     # Extract project names from "project: project-name" pattern (common in session starts)
-    for match in re.findall(r"(?:in |on )?project:\s+([a-z][a-z0-9\-]+)", text, re.IGNORECASE):
+    for match in re.findall(
+        r"(?:in |on )?project:\s+([a-z][a-z0-9\-]+)", text, re.IGNORECASE
+    ):
         cleaned = match.strip()
         if _is_valid_entity(cleaned, allow_lower=True):
             result["projects"].add(cleaned)
 
     result["tools"].difference_update(result["people"])
 
-    cleaned = {key: sorted({value for value in values if value}) for key, values in result.items()}
+    cleaned = {
+        key: sorted({value for value in values if value})
+        for key, values in result.items()
+    }
     return cleaned
 
 
@@ -1097,7 +1152,9 @@ class ServiceState:
     openai_client: Optional[OpenAI] = (
         None  # Keep for backward compatibility (e.g., memory type classification)
     )
-    embedding_provider: Optional[EmbeddingProvider] = None  # New provider pattern for embeddings
+    embedding_provider: Optional[EmbeddingProvider] = (
+        None  # New provider pattern for embeddings
+    )
     enrichment_queue: Optional[Queue] = None
     enrichment_thread: Optional[Thread] = None
     enrichment_stats: EnrichmentStats = field(default_factory=EnrichmentStats)
@@ -1183,7 +1240,9 @@ def init_openai() -> None:
 
     # Check if OpenAI is available at all
     if OpenAI is None:
-        logger.info("OpenAI package not installed (used for memory type classification)")
+        logger.info(
+            "OpenAI package not installed (used for memory type classification)"
+        )
         return
 
     api_key = os.getenv("OPENAI_API_KEY")
@@ -1220,7 +1279,9 @@ def init_embedding_provider() -> None:
     if state.embedding_provider is not None:
         return
 
-    provider_config = (os.getenv("EMBEDDING_PROVIDER", "auto") or "auto").strip().lower()
+    provider_config = (
+        (os.getenv("EMBEDDING_PROVIDER", "auto") or "auto").strip().lower()
+    )
     # Use effective dimension (auto-detected from existing collection or config default).
     # If Qdrant hasn't set it (or config was changed in-process), align to VECTOR_SIZE.
     if state.qdrant is None and state.effective_vector_size != VECTOR_SIZE:
@@ -1239,7 +1300,9 @@ def init_embedding_provider() -> None:
             state.embedding_provider = VoyageEmbeddingProvider(
                 api_key=api_key, model=voyage_model, dimension=vector_size
             )
-            logger.info("Embedding provider: %s", state.embedding_provider.provider_name())
+            logger.info(
+                "Embedding provider: %s", state.embedding_provider.provider_name()
+            )
             return
         except Exception as e:
             raise RuntimeError(f"Failed to initialize Voyage provider: {e}") from e
@@ -1258,7 +1321,9 @@ def init_embedding_provider() -> None:
                 dimension=vector_size,
                 base_url=openai_base_url,
             )
-            logger.info("Embedding provider: %s", state.embedding_provider.provider_name())
+            logger.info(
+                "Embedding provider: %s", state.embedding_provider.provider_name()
+            )
             return
         except Exception as e:
             raise RuntimeError(f"Failed to initialize OpenAI provider: {e}") from e
@@ -1268,10 +1333,14 @@ def init_embedding_provider() -> None:
             from automem.embedding.fastembed import FastEmbedProvider
 
             state.embedding_provider = FastEmbedProvider(dimension=vector_size)
-            logger.info("Embedding provider: %s", state.embedding_provider.provider_name())
+            logger.info(
+                "Embedding provider: %s", state.embedding_provider.provider_name()
+            )
             return
         except Exception as e:
-            raise RuntimeError(f"Failed to initialize local fastembed provider: {e}") from e
+            raise RuntimeError(
+                f"Failed to initialize local fastembed provider: {e}"
+            ) from e
 
     elif provider_config == "ollama":
         base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
@@ -1280,7 +1349,9 @@ def init_embedding_provider() -> None:
             timeout = float(os.getenv("OLLAMA_TIMEOUT", "30"))
             max_retries = int(os.getenv("OLLAMA_MAX_RETRIES", "2"))
         except ValueError as ve:
-            raise RuntimeError(f"Invalid OLLAMA_TIMEOUT or OLLAMA_MAX_RETRIES value: {ve}") from ve
+            raise RuntimeError(
+                f"Invalid OLLAMA_TIMEOUT or OLLAMA_MAX_RETRIES value: {ve}"
+            ) from ve
         try:
             from automem.embedding.ollama import OllamaEmbeddingProvider
 
@@ -1291,7 +1362,9 @@ def init_embedding_provider() -> None:
                 timeout=timeout,
                 max_retries=max_retries,
             )
-            logger.info("Embedding provider: %s", state.embedding_provider.provider_name())
+            logger.info(
+                "Embedding provider: %s", state.embedding_provider.provider_name()
+            )
             return
         except Exception as e:
             raise RuntimeError(f"Failed to initialize Ollama provider: {e}") from e
@@ -1321,7 +1394,9 @@ def init_embedding_provider() -> None:
                 )
                 return
             except Exception as e:
-                logger.warning("Failed to initialize Voyage provider, trying OpenAI: %s", str(e))
+                logger.warning(
+                    "Failed to initialize Voyage provider, trying OpenAI: %s", str(e)
+                )
 
         # Try OpenAI
         api_key = os.getenv("OPENAI_API_KEY")
@@ -1343,7 +1418,8 @@ def init_embedding_provider() -> None:
                 return
             except Exception as e:
                 logger.warning(
-                    "Failed to initialize OpenAI provider, trying local model: %s", str(e)
+                    "Failed to initialize OpenAI provider, trying local model: %s",
+                    str(e),
                 )
 
         ollama_base_url = os.getenv("OLLAMA_BASE_URL")
@@ -1358,7 +1434,9 @@ def init_embedding_provider() -> None:
                     timeout = float(os.getenv("OLLAMA_TIMEOUT", "30"))
                     max_retries = int(os.getenv("OLLAMA_MAX_RETRIES", "2"))
                 except ValueError:
-                    logger.warning("Invalid OLLAMA_TIMEOUT or OLLAMA_MAX_RETRIES, using defaults")
+                    logger.warning(
+                        "Invalid OLLAMA_TIMEOUT or OLLAMA_MAX_RETRIES, using defaults"
+                    )
                     timeout = 30.0
                     max_retries = 2
                 state.embedding_provider = OllamaEmbeddingProvider(
@@ -1375,7 +1453,8 @@ def init_embedding_provider() -> None:
                 return
             except Exception as e:
                 logger.warning(
-                    "Failed to initialize Ollama provider, trying local model: %s", str(e)
+                    "Failed to initialize Ollama provider, trying local model: %s",
+                    str(e),
                 )
 
         # Try local fastembed
@@ -1384,11 +1463,14 @@ def init_embedding_provider() -> None:
 
             state.embedding_provider = FastEmbedProvider(dimension=vector_size)
             logger.info(
-                "Embedding provider (auto-selected): %s", state.embedding_provider.provider_name()
+                "Embedding provider (auto-selected): %s",
+                state.embedding_provider.provider_name(),
             )
             return
         except Exception as e:
-            logger.warning("Failed to initialize fastembed provider, using placeholder: %s", str(e))
+            logger.warning(
+                "Failed to initialize fastembed provider, using placeholder: %s", str(e)
+            )
 
         # Fallback to placeholder
         from automem.embedding.placeholder import PlaceholderEmbeddingProvider
@@ -1399,7 +1481,8 @@ def init_embedding_provider() -> None:
             "Install fastembed or set VOYAGE_API_KEY/OPENAI_API_KEY for semantic embeddings."
         )
         logger.info(
-            "Embedding provider (auto-selected): %s", state.embedding_provider.provider_name()
+            "Embedding provider (auto-selected): %s",
+            state.embedding_provider.provider_name(),
         )
         return
 
@@ -1438,7 +1521,8 @@ def init_falkordb() -> None:
         state.falkordb = FalkorDB(**connection_params)
         state.memory_graph = state.falkordb.select_graph(GRAPH_NAME)
         logger.info(
-            "FalkorDB connection established (auth: %s)", "enabled" if password else "disabled"
+            "FalkorDB connection established (auth: %s)",
+            "enabled" if password else "disabled",
         )
     except Exception:  # pragma: no cover - log full stack trace in production
         logger.exception("Failed to initialize FalkorDB connection")
@@ -1496,15 +1580,21 @@ def _ensure_qdrant_collection() -> None:
         existing = {collection.name for collection in collections.collections}
         if COLLECTION_NAME not in existing:
             logger.info(
-                "Creating Qdrant collection '%s' with %dd vectors", COLLECTION_NAME, effective_dim
+                "Creating Qdrant collection '%s' with %dd vectors",
+                COLLECTION_NAME,
+                effective_dim,
             )
             state.qdrant.create_collection(
                 collection_name=COLLECTION_NAME,
-                vectors_config=VectorParams(size=effective_dim, distance=Distance.COSINE),
+                vectors_config=VectorParams(
+                    size=effective_dim, distance=Distance.COSINE
+                ),
             )
 
         # Ensure payload indexes exist for tag filtering
-        logger.info("Ensuring Qdrant payload indexes for collection '%s'", COLLECTION_NAME)
+        logger.info(
+            "Ensuring Qdrant payload indexes for collection '%s'", COLLECTION_NAME
+        )
         if PayloadSchemaType:
             # Use enum if available
             state.qdrant.create_payload_index(
@@ -1558,7 +1648,9 @@ def init_enrichment_pipeline() -> None:
     logger.info("Enrichment pipeline initialized")
 
 
-def enqueue_enrichment(memory_id: str, *, forced: bool = False, attempt: int = 0) -> None:
+def enqueue_enrichment(
+    memory_id: str, *, forced: bool = False, attempt: int = 0
+) -> None:
     if not memory_id or state.enrichment_queue is None:
         return
 
@@ -1566,7 +1658,8 @@ def enqueue_enrichment(memory_id: str, *, forced: bool = False, attempt: int = 0
 
     with state.enrichment_lock:
         if not forced and (
-            memory_id in state.enrichment_pending or memory_id in state.enrichment_inflight
+            memory_id in state.enrichment_pending
+            or memory_id in state.enrichment_inflight
         ):
             return
 
@@ -1769,7 +1862,9 @@ def _build_scheduler_from_graph(graph: Any) -> Optional[ConsolidationScheduler]:
     return scheduler
 
 
-def _build_consolidator_from_config(graph: Any, vector_store: Any) -> MemoryConsolidator:
+def _build_consolidator_from_config(
+    graph: Any, vector_store: Any
+) -> MemoryConsolidator:
     return MemoryConsolidator(
         graph,
         vector_store,
@@ -1904,7 +1999,9 @@ def enrichment_worker() -> None:
                     utc_now,
                 )
                 if not processed:
-                    logger.debug("Enrichment skipped for %s (already processed)", job.memory_id)
+                    logger.debug(
+                        "Enrichment skipped for %s (already processed)", job.memory_id
+                    )
             except Exception as exc:  # pragma: no cover - background thread
                 state.enrichment_stats.record_failure(str(exc))
                 elapsed_ms = int((time.perf_counter() - enrich_start) * 1000)
@@ -1922,7 +2019,9 @@ def enrichment_worker() -> None:
                 logger.exception("Failed to enrich memory %s", job.memory_id)
                 if job.attempt + 1 < ENRICHMENT_MAX_ATTEMPTS:
                     time.sleep(ENRICHMENT_FAILURE_BACKOFF_SECONDS)
-                    enqueue_enrichment(job.memory_id, forced=job.forced, attempt=job.attempt + 1)
+                    enqueue_enrichment(
+                        job.memory_id, forced=job.forced, attempt=job.attempt + 1
+                    )
                 else:
                     logger.error(
                         "Giving up on enrichment for %s after %s attempts",
@@ -1955,7 +2054,10 @@ def enqueue_embedding(memory_id: str, content: str) -> None:
         return
 
     with state.embedding_lock:
-        if memory_id in state.embedding_pending or memory_id in state.embedding_inflight:
+        if (
+            memory_id in state.embedding_pending
+            or memory_id in state.embedding_inflight
+        ):
             return
 
         state.embedding_pending.add(memory_id)
@@ -2045,7 +2147,9 @@ def _process_embedding_batch(batch: List[Tuple[str, str]]) -> None:
             state.embedding_queue.task_done()
 
 
-def _store_embedding_in_qdrant(memory_id: str, content: str, embedding: List[float]) -> None:
+def _store_embedding_in_qdrant(
+    memory_id: str, content: str, embedding: List[float]
+) -> None:
     """Store a pre-generated embedding in Qdrant with memory metadata."""
     qdrant_client = get_qdrant_client()
     if qdrant_client is None:
@@ -2058,7 +2162,9 @@ def _store_embedding_in_qdrant(memory_id: str, content: str, embedding: List[flo
     # Fetch latest memory data from FalkorDB for payload
     result = graph.query("MATCH (m:Memory {id: $id}) RETURN m", {"id": memory_id})
     if not getattr(result, "result_set", None):
-        logger.warning("Memory %s not found in FalkorDB, skipping Qdrant update", memory_id)
+        logger.warning(
+            "Memory %s not found in FalkorDB, skipping Qdrant update", memory_id
+        )
         return
 
     node = result.result_set[0][0]
@@ -2279,7 +2385,8 @@ def enrich_memory(memory_id: str, *, forced: bool = False) -> bool:
             "temporal_links": temporal_links,
             "patterns_detected": pattern_info,
             "semantic_neighbors": [
-                {"id": neighbour_id, "score": score} for neighbour_id, score in semantic_neighbors
+                {"id": neighbour_id, "score": score}
+                for neighbour_id, score in semantic_neighbors
             ],
         }
     )
@@ -2324,12 +2431,17 @@ def enrich_memory(memory_id: str, *, forced: bool = False) -> bool:
             # 404 means embedding upload hasn't completed yet (race condition)
             if exc.status_code == 404:
                 logger.debug(
-                    "Qdrant payload sync skipped - point not yet uploaded: %s", memory_id[:8]
+                    "Qdrant payload sync skipped - point not yet uploaded: %s",
+                    memory_id[:8],
                 )
             else:
-                logger.warning("Qdrant payload sync failed (%d): %s", exc.status_code, memory_id)
+                logger.warning(
+                    "Qdrant payload sync failed (%d): %s", exc.status_code, memory_id
+                )
         except Exception:
-            logger.exception("Failed to sync Qdrant payload for enriched memory %s", memory_id)
+            logger.exception(
+                "Failed to sync Qdrant payload for enriched memory %s", memory_id
+            )
 
     logger.debug(
         "Enriched memory %s (temporal=%s, patterns=%s, semantic=%s)",
@@ -2422,8 +2534,9 @@ def detect_patterns(graph: Any, memory_id: str, content: str) -> List[Dict[str, 
 
             top_terms = [term for term, _ in tokens.most_common(5)]
             pattern_id = f"pattern-{memory_type}-{uuid.uuid4().hex[:8]}"
-            description = f"Pattern across {similar_count + 1} {memory_type} memories" + (
-                f" highlighting {', '.join(top_terms)}" if top_terms else ""
+            description = (
+                f"Pattern across {similar_count + 1} {memory_type} memories"
+                + (f" highlighting {', '.join(top_terms)}" if top_terms else "")
             )
 
             graph.query(
@@ -2862,7 +2975,9 @@ def update_memory(memory_id: str) -> Any:
     memory_type = payload.get("type", current.get("type"))
     confidence = payload.get("confidence", current.get("confidence"))
     timestamp = payload.get("timestamp", current.get("timestamp"))
-    metadata_raw = payload.get("metadata", _parse_metadata_field(current.get("metadata")))
+    metadata_raw = payload.get(
+        "metadata", _parse_metadata_field(current.get("metadata"))
+    )
     updated_at = payload.get("updated_at", current.get("updated_at", utc_now()))
     last_accessed = payload.get("last_accessed", current.get("last_accessed"))
 
@@ -2982,7 +3097,9 @@ def delete_memory(memory_id: str) -> Any:
                 selector = qdrant_models.PointIdsList(points=[memory_id])
             else:
                 selector = {"points": [memory_id]}
-            qdrant_client.delete(collection_name=COLLECTION_NAME, points_selector=selector)
+            qdrant_client.delete(
+                collection_name=COLLECTION_NAME, points_selector=selector
+            )
         except Exception:
             logger.exception("Failed to delete vector for memory %s", memory_id)
 
@@ -3028,7 +3145,12 @@ def memories_by_tag() -> Any:
         memories.append(data)
 
     return jsonify(
-        {"status": "success", "tags": tags, "count": len(memories), "memories": memories}
+        {
+            "status": "success",
+            "tags": tags,
+            "count": len(memories),
+            "memories": memories,
+        }
     )
 
 
@@ -3146,7 +3268,9 @@ def create_association() -> Any:
     if memory1_id == memory2_id:
         abort(400, description="Cannot associate a memory with itself")
     if relation_type not in ALLOWED_RELATIONS:
-        abort(400, description=f"Relation type must be one of {sorted(ALLOWED_RELATIONS)}")
+        abort(
+            400, description=f"Relation type must be one of {sorted(ALLOWED_RELATIONS)}"
+        )
 
     graph = get_memory_graph()
     if graph is None:
@@ -3255,7 +3379,8 @@ def consolidation_status() -> Any:
                     "next_runs": next_runs,
                     "history": history,
                     "thread_alive": bool(
-                        state.consolidation_thread and state.consolidation_thread.is_alive()
+                        state.consolidation_thread
+                        and state.consolidation_thread.is_alive()
                     ),
                     "tick_seconds": CONSOLIDATION_TICK_SECONDS,
                 }
@@ -3353,14 +3478,12 @@ def analyze_memories() -> Any:
 
     try:
         # Analyze memory type distribution
-        type_result = graph.query(
-            """
+        type_result = graph.query("""
             MATCH (m:Memory)
             WHERE m.type IS NOT NULL
             RETURN m.type, COUNT(m) as count, AVG(m.confidence) as avg_confidence
             ORDER BY count DESC
-            """
-        )
+            """)
 
         for mem_type, count, avg_conf in type_result.result_set:
             analytics["memory_types"][mem_type] = {
@@ -3369,15 +3492,13 @@ def analyze_memories() -> Any:
             }
 
         # Find patterns with high confidence
-        pattern_result = graph.query(
-            """
+        pattern_result = graph.query("""
             MATCH (p:Pattern)
             WHERE p.confidence > 0.6
             RETURN p.type, p.content, p.confidence, p.observations
             ORDER BY p.confidence DESC
             LIMIT 10
-            """
-        )
+            """)
 
         for p_type, content, confidence, observations in pattern_result.result_set:
             analytics["patterns"].append(
@@ -3390,14 +3511,12 @@ def analyze_memories() -> Any:
             )
 
         # Find preferences (PREFERS_OVER relationships)
-        pref_result = graph.query(
-            """
+        pref_result = graph.query("""
             MATCH (m1:Memory)-[r:PREFERS_OVER]->(m2:Memory)
             RETURN m1.content, m2.content, r.context, r.strength
             ORDER BY r.strength DESC
             LIMIT 10
-            """
-        )
+            """)
 
         for preferred, over, context, strength in pref_result.result_set:
             analytics["preferences"].append(
@@ -3411,14 +3530,12 @@ def analyze_memories() -> Any:
 
         # Temporal insights - simplified for FalkorDB compatibility
         try:
-            temporal_result = graph.query(
-                """
+            temporal_result = graph.query("""
                 MATCH (m:Memory)
                 WHERE m.timestamp IS NOT NULL
                 RETURN m.timestamp, m.importance
                 LIMIT 100
-                """
-            )
+                """)
 
             # Process temporal data in Python
             from collections import defaultdict
@@ -3439,15 +3556,16 @@ def analyze_memories() -> Any:
                 if data["count"] > 0:
                     analytics["temporal_insights"][f"hour_{hour:02d}"] = {
                         "count": data["count"],
-                        "avg_importance": round(data["total_importance"] / data["count"], 3),
+                        "avg_importance": round(
+                            data["total_importance"] / data["count"], 3
+                        ),
                     }
         except Exception:
             # Skip temporal insights if query fails
             pass
 
         # Confidence distribution
-        conf_result = graph.query(
-            """
+        conf_result = graph.query("""
             MATCH (m:Memory)
             WHERE m.confidence IS NOT NULL
             RETURN
@@ -3457,21 +3575,18 @@ def analyze_memories() -> Any:
                     ELSE 'high'
                 END as level,
                 COUNT(m) as count
-            """
-        )
+            """)
 
         for level, count in conf_result.result_set:
             analytics["confidence_distribution"][level] = count
 
         # Entity extraction insights (top mentioned tools/projects)
-        entity_result = graph.query(
-            """
+        entity_result = graph.query("""
             MATCH (m:Memory)
             WHERE m.content IS NOT NULL
             RETURN m.content
             LIMIT 100
-            """
-        )
+            """)
 
         entity_counts: Dict[str, Dict[str, int]] = {
             "tools": {},
@@ -3483,7 +3598,9 @@ def analyze_memories() -> Any:
             for tool in entities.get("tools", []):
                 entity_counts["tools"][tool] = entity_counts["tools"].get(tool, 0) + 1
             for project in entities.get("projects", []):
-                entity_counts["projects"][project] = entity_counts["projects"].get(project, 0) + 1
+                entity_counts["projects"][project] = (
+                    entity_counts["projects"].get(project, 0) + 1
+                )
 
         # Top 5 most mentioned
         analytics["entity_frequency"]["tools"] = sorted(
@@ -3538,7 +3655,9 @@ def _coerce_embedding(value: Any) -> Optional[List[float]]:
     elif isinstance(value, str):
         vector = [part.strip() for part in value.split(",") if part.strip()]
     else:
-        raise ValueError("Embedding must be a list of floats or a comma-separated string")
+        raise ValueError(
+            "Embedding must be a list of floats or a comma-separated string"
+        )
 
     # Use effective dimension (auto-detected or config)
     expected_dim = state.effective_vector_size
@@ -3593,7 +3712,9 @@ def _generate_real_embeddings_batch(contents: List[str]) -> List[List[float]]:
         return []
 
     if state.embedding_provider is None:
-        logger.debug("No embedding provider available, falling back to placeholder embeddings")
+        logger.debug(
+            "No embedding provider available, falling back to placeholder embeddings"
+        )
         return [_generate_placeholder_embedding(c) for c in contents]
 
     expected_dim = state.effective_vector_size
@@ -3602,7 +3723,11 @@ def _generate_real_embeddings_batch(contents: List[str]) -> List[List[float]]:
         if not embeddings or any(len(e) != expected_dim for e in embeddings):
             logger.warning(
                 "Provider %s returned invalid dims in batch; using placeholders",
-                state.embedding_provider.provider_name() if state.embedding_provider else "unknown",
+                (
+                    state.embedding_provider.provider_name()
+                    if state.embedding_provider
+                    else "unknown"
+                ),
             )
             return [_generate_placeholder_embedding(c) for c in contents]
         return embeddings
@@ -3654,7 +3779,9 @@ def get_related_memories(memory_id: str) -> Any:
     # Parse and sanitize relationship types
     rel_types_param = (request.args.get("relationship_types") or "").strip()
     if rel_types_param:
-        requested = [part.strip().upper() for part in rel_types_param.split(",") if part.strip()]
+        requested = [
+            part.strip().upper() for part in rel_types_param.split(",") if part.strip()
+        ]
         rel_types = [t for t in requested if t in ALLOWED_RELATIONS]
         if not rel_types:
             rel_types = sorted(ALLOWED_RELATIONS)
