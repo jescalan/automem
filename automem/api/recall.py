@@ -8,7 +8,11 @@ from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
 from flask import Blueprint, abort, jsonify, request
 
-from automem.config import ALLOWED_RELATIONS, RECALL_EXPANSION_LIMIT, RECALL_RELATION_LIMIT
+from automem.config import (
+    ALLOWED_RELATIONS,
+    RECALL_EXPANSION_LIMIT,
+    RECALL_RELATION_LIMIT,
+)
 from automem.utils.graph import _serialize_node
 
 DEFAULT_STYLE_PRIORITY_TAGS: Set[str] = {
@@ -168,7 +172,9 @@ def _extract_query_entities(query: str) -> List[str]:
     return list(set(entities))
 
 
-def _extract_topic_keywords(query: str, exclude_entities: Optional[List[str]] = None) -> List[str]:
+def _extract_topic_keywords(
+    query: str, exclude_entities: Optional[List[str]] = None
+) -> List[str]:
     """
     Extract meaningful topic keywords from a query.
 
@@ -451,9 +457,15 @@ def _build_context_profile(
     context_label: str,
     query_text: str,
 ) -> Optional[Dict[str, Any]]:
-    priority_tags: Set[str] = {tag.strip().lower() for tag in manual_tags if tag and tag.strip()}
-    priority_types: Set[str] = {typ.strip().title() for typ in manual_types if typ and typ.strip()}
-    priority_ids: Set[str] = {value.strip() for value in manual_ids if value and value.strip()}
+    priority_tags: Set[str] = {
+        tag.strip().lower() for tag in manual_tags if tag and tag.strip()
+    }
+    priority_types: Set[str] = {
+        typ.strip().title() for typ in manual_types if typ and typ.strip()
+    }
+    priority_ids: Set[str] = {
+        value.strip() for value in manual_ids if value and value.strip()
+    }
     priority_keywords: Set[str] = set()
 
     style_focus = False
@@ -502,7 +514,9 @@ def _build_context_profile(
     }
 
 
-def _result_matches_context_priority(result: Dict[str, Any], profile: Dict[str, Any]) -> bool:
+def _result_matches_context_priority(
+    result: Dict[str, Any], profile: Dict[str, Any]
+) -> bool:
     memory = result.get("memory", {}) or {}
     priority_ids: Set[str] = profile.get("priority_ids", set())
     priority_tags: Set[str] = profile.get("priority_tags", set())
@@ -520,7 +534,11 @@ def _result_matches_context_priority(result: Dict[str, Any], profile: Dict[str, 
         }
         for tag in tags:
             for priority_tag in priority_tags:
-                if tag == priority_tag or tag.startswith(priority_tag) or priority_tag in tag:
+                if (
+                    tag == priority_tag
+                    or tag.startswith(priority_tag)
+                    or priority_tag in tag
+                ):
                     return True
 
     if priority_types:
@@ -627,7 +645,9 @@ def _inject_priority_memories(
     return False
 
 
-def _results_have_priority(results: List[Dict[str, Any]], profile: Dict[str, Any]) -> bool:
+def _results_have_priority(
+    results: List[Dict[str, Any]], profile: Dict[str, Any]
+) -> bool:
     for result in results:
         if _result_matches_context_priority(result, profile):
             return True
@@ -678,7 +698,8 @@ def _expand_entity_memories(
     vector_filter_only_tag_search: Callable[..., List[Dict[str, Any]]],
     qdrant_client: Any,
     compute_metadata_score: Callable[
-        [Dict[str, Any], str, List[str], Optional[Dict[str, Any]]], tuple[float, Dict[str, float]]
+        [Dict[str, Any], str, List[str], Optional[Dict[str, Any]]],
+        tuple[float, Dict[str, float]],
     ],
     query_text: str,
     query_tokens: List[str],
@@ -738,7 +759,9 @@ def _expand_entity_memories(
             continue
 
         for result in entity_results:
-            result_id = str(result.get("id") or (result.get("memory") or {}).get("id") or "")
+            result_id = str(
+                result.get("id") or (result.get("memory") or {}).get("id") or ""
+            )
             if not result_id or result_id in seen_ids:
                 continue
 
@@ -770,7 +793,9 @@ def _expand_entity_memories(
     expanded_list.sort(key=lambda r: -float(r.get("final_score", 0.0)))
 
     logger.debug(
-        "Entity expansion: added %d memories from %d entities", len(expanded_list), len(entities)
+        "Entity expansion: added %d memories from %d entities",
+        len(expanded_list),
+        len(entities),
     )
 
     return expanded_list
@@ -793,7 +818,8 @@ def _expand_related_memories(
         bool,
     ],
     compute_metadata_score: Callable[
-        [Dict[str, Any], str, List[str], Optional[Dict[str, Any]]], tuple[float, Dict[str, float]]
+        [Dict[str, Any], str, List[str], Optional[Dict[str, Any]]],
+        tuple[float, Dict[str, float]],
     ],
     query_text: str,
     query_tokens: List[str],
@@ -815,7 +841,9 @@ def _expand_related_memories(
     if graph is None or not seed_results or expansion_limit <= 0:
         return []
 
-    relation_types = sorted({rel.upper() for rel in allowed_relations}) if allowed_relations else []
+    relation_types = (
+        sorted({rel.upper() for rel in allowed_relations}) if allowed_relations else []
+    )
     per_seed_limit = max(1, per_seed_limit)
     expansion_limit = max(1, expansion_limit)
 
@@ -827,7 +855,9 @@ def _expand_related_memories(
             break
 
         memory = seed.get("memory") or {}
-        seed_id = str(seed.get("id") or memory.get("id") or memory.get("memory_id") or "").strip()
+        seed_id = str(
+            seed.get("id") or memory.get("id") or memory.get("memory_id") or ""
+        ).strip()
         if not seed_id:
             continue
 
@@ -850,7 +880,9 @@ def _expand_related_memories(
             logger.exception("Failed to expand relations for seed %s", seed_id)
             continue
 
-        for relation_type, relation_strength, related in getattr(records, "result_set", []) or []:
+        for relation_type, relation_strength, related in (
+            getattr(records, "result_set", []) or []
+        ):
             if total_added >= expansion_limit:
                 break
 
@@ -870,7 +902,10 @@ def _expand_related_memories(
             except (TypeError, ValueError):  # pragma: no cover - defensive
                 relation_strength_val = 0.0
 
-            if expand_min_strength is not None and relation_strength_val < expand_min_strength:
+            if (
+                expand_min_strength is not None
+                and relation_strength_val < expand_min_strength
+            ):
                 continue
 
             # Importance filter (applies only to expanded results)
@@ -882,11 +917,19 @@ def _expand_related_memories(
                 except (TypeError, ValueError):
                     continue
             if not result_passes_filters(
-                candidate, start_time, end_time, tag_filters, tag_mode, tag_match, exclude_tags
+                candidate,
+                start_time,
+                end_time,
+                tag_filters,
+                tag_mode,
+                tag_match,
+                exclude_tags,
             ):
                 continue
 
-            relation_score = relation_strength_val + max(seed_score, 0.0) * seed_score_boost
+            relation_score = (
+                relation_strength_val + max(seed_score, 0.0) * seed_score_boost
+            )
 
             edge_info = {
                 "type": relation_type,
@@ -941,10 +984,13 @@ def handle_recall(
     get_qdrant_client: Callable[[], Any],
     normalize_tag_list: Callable[[Any], List[str]],
     normalize_timestamp: Callable[[str], str],
-    parse_time_expression: Callable[[Optional[str]], Tuple[Optional[str], Optional[str]]],
+    parse_time_expression: Callable[
+        [Optional[str]], Tuple[Optional[str], Optional[str]]
+    ],
     extract_keywords: Callable[[str], List[str]],
     compute_metadata_score: Callable[
-        [Dict[str, Any], str, List[str], Optional[Dict[str, Any]]], tuple[float, Dict[str, float]]
+        [Dict[str, Any], str, List[str], Optional[Dict[str, Any]]],
+        tuple[float, Dict[str, float]],
     ],
     result_passes_filters: Callable[
         [
@@ -975,9 +1021,17 @@ def handle_recall(
         request.args.getlist("queries") or request.args.get("queries")
     )
     sort_param = (
-        (request.args.get("sort") or request.args.get("order_by") or "score").strip().lower()
+        (request.args.get("sort") or request.args.get("order_by") or "score")
+        .strip()
+        .lower()
     )
-    if sort_param not in {"score", "time_desc", "time_asc", "updated_desc", "updated_asc"}:
+    if sort_param not in {
+        "score",
+        "time_desc",
+        "time_asc",
+        "updated_desc",
+        "updated_asc",
+    }:
         sort_param = "score"
     try:
         requested_limit = int(request.args.get("limit", 5))
@@ -1067,7 +1121,9 @@ def handle_recall(
     )
 
     try:
-        relation_limit = max(1, min(int(request.args.get("relation_limit", relation_limit)), 200))
+        relation_limit = max(
+            1, min(int(request.args.get("relation_limit", relation_limit)), 200)
+        )
     except (TypeError, ValueError):
         relation_limit = max(1, relation_limit)
 
@@ -1091,7 +1147,9 @@ def handle_recall(
         or request.args.get("focus_path")
         or ""
     )
-    language_hint_param = (request.args.get("language") or request.args.get("lang") or "").strip()
+    language_hint_param = (
+        request.args.get("language") or request.args.get("lang") or ""
+    ).strip()
 
     context_tags_input = _split_multi_value(
         request.args.getlist("context_tags") or request.args.get("context_tags")
@@ -1164,7 +1222,13 @@ def handle_recall(
                     res
                     for res in vector_matches
                     if result_passes_filters(
-                        res, start_time, end_time, tag_filters, tag_mode, tag_match, exclude_tags
+                        res,
+                        start_time,
+                        end_time,
+                        tag_filters,
+                        tag_mode,
+                        tag_match,
+                        exclude_tags,
                     )
                 ]
 
@@ -1187,7 +1251,12 @@ def handle_recall(
         # BM25 full-text search (complements vector + graph keyword)
         bm25_matches: List[Dict[str, Any]] = []
         try:
-            from automem.search.bm25 import search as bm25_search, BM25_ENABLED, fuse_rrf
+            from automem.search.bm25 import (
+                BM25_ENABLED,
+                fuse_rrf,
+            )
+            from automem.search.bm25 import search as bm25_search
+
             if BM25_ENABLED and query_str:
                 bm25_seen: set[str] = set()
                 bm25_matches = bm25_search(
@@ -1198,21 +1267,32 @@ def handle_recall(
                 )
                 if start_time or end_time or exclude_tags:
                     bm25_matches = [
-                        res for res in bm25_matches
+                        res
+                        for res in bm25_matches
                         if result_passes_filters(
-                            res, start_time, end_time, tag_filters, tag_mode, tag_match, exclude_tags
+                            res,
+                            start_time,
+                            end_time,
+                            tag_filters,
+                            tag_mode,
+                            tag_match,
+                            exclude_tags,
                         )
                     ]
         except ImportError:
             pass
         except Exception:
             import logging as _logging
-            _logging.getLogger(__name__).debug("BM25 recall search failed", exc_info=True)
+
+            _logging.getLogger(__name__).debug(
+                "BM25 recall search failed", exc_info=True
+            )
 
         # Fuse all sources via RRF if BM25 is active, otherwise fall back to sequential merge
         if bm25_matches:
             try:
                 from automem.search.bm25 import fuse_rrf
+
                 local_results = fuse_rrf(
                     vector_matches[:per_query_limit],
                     graph_matches[:per_query_limit],
@@ -1238,7 +1318,11 @@ def handle_recall(
             and not (embedding_param and embedding_param.strip())
             and bool(tag_filters)
         )
-        if tags_only_request and qdrant_client is not None and len(local_results) < per_query_limit:
+        if (
+            tags_only_request
+            and qdrant_client is not None
+            and len(local_results) < per_query_limit
+        ):
             tag_only_results = vector_filter_only_tag_search(
                 qdrant_client,
                 tag_filters,
@@ -1287,7 +1371,13 @@ def handle_recall(
             res
             for res in local_results
             if result_passes_filters(
-                res, start_time, end_time, tag_filters, tag_mode, tag_match, exclude_tags
+                res,
+                start_time,
+                end_time,
+                tag_filters,
+                tag_mode,
+                tag_match,
+                exclude_tags,
             )
         ]
 
@@ -1304,7 +1394,9 @@ def handle_recall(
             local_results.sort(key=_time_sort_key, reverse=(sort_param == "time_desc"))
         elif sort_param in {"updated_desc", "updated_asc"}:
             # Same key, but favor updated_at (already primary) and keep the name explicit for callers
-            local_results.sort(key=_time_sort_key, reverse=(sort_param == "updated_desc"))
+            local_results.sort(
+                key=_time_sort_key, reverse=(sort_param == "updated_desc")
+            )
         if len(local_results) > per_query_limit:
             local_results = local_results[:per_query_limit]
 
@@ -1352,11 +1444,19 @@ def handle_recall(
     )
     if expand_enabled_param and query_text and not multi_queries and query_text != "*":
         try:
-            from automem.search.query_expand import expand_query as llm_expand, EXPAND_ENABLED
+            from automem.search.query_expand import (
+                EXPAND_ENABLED,
+            )
+            from automem.search.query_expand import expand_query as llm_expand
+
             if EXPAND_ENABLED:
-                expanded_queries = llm_expand(query_text, get_openai_client() if get_openai_client else None)
+                expanded_queries = llm_expand(
+                    query_text, get_openai_client() if get_openai_client else None
+                )
                 if expanded_queries:
-                    logger.info("Query expansion: %r → %s", query_text[:50], expanded_queries)
+                    logger.info(
+                        "Query expansion: %r → %s", query_text[:50], expanded_queries
+                    )
         except ImportError:
             pass
         except Exception:
@@ -1380,7 +1480,11 @@ def handle_recall(
     per_query_limit = limit
     try:
         per_query_limit = max(
-            1, min(int(request.args.get("per_query_limit", per_query_limit)), recall_max_limit)
+            1,
+            min(
+                int(request.args.get("per_query_limit", per_query_limit)),
+                recall_max_limit,
+            ),
         )
     except (TypeError, ValueError):
         per_query_limit = limit
@@ -1459,7 +1563,8 @@ def handle_recall(
     # Entity-based expansion for multi-hop reasoning
     if expand_entities and qdrant_client is not None:
         entity_expansion_results = _expand_entity_memories(
-            seed_results=seed_results + expansion_results,  # Include relation-expanded results too
+            seed_results=seed_results
+            + expansion_results,  # Include relation-expanded results too
             seen_ids=seen_ids,
             vector_filter_only_tag_search=vector_filter_only_tag_search,
             qdrant_client=qdrant_client,
@@ -1477,17 +1582,27 @@ def handle_recall(
                 r
                 for r in entity_expansion_results
                 if result_passes_filters(
-                    r, start_time, end_time, tag_filters, tag_mode, tag_match, exclude_tags
+                    r,
+                    start_time,
+                    end_time,
+                    tag_filters,
+                    tag_mode,
+                    tag_match,
+                    exclude_tags,
                 )
             ]
         results = seed_results + expansion_results + entity_expansion_results
 
     # LLM reranking — final pass to score actual relevance
     try:
-        from automem.search.rerank import rerank as llm_rerank, RERANK_ENABLED
+        from automem.search.rerank import RERANK_ENABLED
+        from automem.search.rerank import rerank as llm_rerank
+
         if RERANK_ENABLED and query_text and results:
             # Pass main client if available; reranker also has its own dedicated client
-            openai_client = get_openai_client() if get_openai_client is not None else None
+            openai_client = (
+                get_openai_client() if get_openai_client is not None else None
+            )
             results = llm_rerank(query_text, results, openai_client)
     except ImportError:
         pass
@@ -1525,6 +1640,7 @@ def handle_recall(
     # Report rerank status
     try:
         from automem.search.rerank import RERANK_ENABLED
+
         response["rerank"] = {"enabled": RERANK_ENABLED}
     except ImportError:
         pass
@@ -1532,6 +1648,7 @@ def handle_recall(
     # Report query expansion status
     try:
         from automem.search.query_expand import EXPAND_ENABLED
+
         response["query_expansion"] = {
             "enabled": EXPAND_ENABLED,
             "alternatives": expanded_queries if expanded_queries else [],
@@ -1542,7 +1659,9 @@ def handle_recall(
     if is_multi:
         response["queries"] = queries_to_run
     if query_text and not is_multi:
-        response["keywords"] = extract_keywords(query_text.lower()) if query_text else []
+        response["keywords"] = (
+            extract_keywords(query_text.lower()) if query_text else []
+        )
     if start_time or end_time:
         response["time_window"] = {"start": start_time, "end": end_time}
     if tag_filters:
@@ -1556,7 +1675,9 @@ def handle_recall(
         response["context_priority"] = {
             "language": any_context_profile.get("language"),
             "context": any_context_profile.get("context_label"),
-            "priority_tags": sorted(any_context_profile.get("priority_tags") or [])[:10],
+            "priority_tags": sorted(any_context_profile.get("priority_tags") or [])[
+                :10
+            ],
             "priority_types": sorted(any_context_profile.get("priority_types") or []),
             "injected": any_context_injected,
         }
@@ -1576,7 +1697,9 @@ def handle_recall(
             "dedup_removed": dedup_removed,
             "is_multi": is_multi,
             "context_language": (
-                (any_context_profile or {}).get("language") if any_context_profile else None
+                (any_context_profile or {}).get("language")
+                if any_context_profile
+                else None
             ),
         },
     )
@@ -1599,10 +1722,13 @@ def create_recall_blueprint(
     get_qdrant_client: Callable[[], Any],
     normalize_tag_list: Callable[[Any], List[str]],
     normalize_timestamp: Callable[[str], str],
-    parse_time_expression: Callable[[Optional[str]], Tuple[Optional[str], Optional[str]]],
+    parse_time_expression: Callable[
+        [Optional[str]], Tuple[Optional[str], Optional[str]]
+    ],
     extract_keywords: Callable[[str], List[str]],
     compute_metadata_score: Callable[
-        [Dict[str, Any], str, List[str], Optional[Dict[str, Any]]], tuple[float, Dict[str, float]]
+        [Dict[str, Any], str, List[str], Optional[Dict[str, Any]]],
+        tuple[float, Dict[str, float]],
     ],
     result_passes_filters: Callable[
         [
@@ -1645,7 +1771,9 @@ def create_recall_blueprint(
             vector_filter_only_tag_search,
             recall_max_limit,
             logger,
-            allowed_relations=allowed_relations if allowed_relations else set(ALLOWED_RELATIONS),
+            allowed_relations=(
+                allowed_relations if allowed_relations else set(ALLOWED_RELATIONS)
+            ),
             relation_limit=relation_limit,
             expansion_limit_default=RECALL_EXPANSION_LIMIT,
             on_access=on_access,
@@ -1694,7 +1822,11 @@ def create_recall_blueprint(
             if getattr(system_results, "result_set", None):
                 for row in system_results.result_set:
                     system_rules.append(
-                        {"id": row[0], "content": row[1], "tags": row[2] if row[2] else []}
+                        {
+                            "id": row[0],
+                            "content": row[1],
+                            "tags": row[2] if row[2] else [],
+                        }
                     )
 
             response = {
@@ -1702,7 +1834,9 @@ def create_recall_blueprint(
                 "critical_lessons": lessons,
                 "system_rules": system_rules,
                 "lesson_count": len(lessons),
-                "has_critical": any(lesson.get("importance", 0) >= 0.9 for lesson in lessons),
+                "has_critical": any(
+                    lesson.get("importance", 0) >= 0.9 for lesson in lessons
+                ),
                 "summary": f"Recalled {len(lessons)} lesson(s) and {len(system_rules)} system rule(s)",
             }
             return jsonify(response), 200
@@ -1724,29 +1858,27 @@ def create_recall_blueprint(
             "confidence_distribution": {},
         }
         try:
-            type_result = graph.query(
-                """
+            type_result = graph.query("""
                 MATCH (m:Memory)
                 WHERE m.type IS NOT NULL
                 RETURN m.type, COUNT(m) as count, AVG(m.confidence) as avg_confidence
                 ORDER BY count DESC
-                """
-            )
-            for mem_type, count, avg_conf in getattr(type_result, "result_set", []) or []:
+                """)
+            for mem_type, count, avg_conf in (
+                getattr(type_result, "result_set", []) or []
+            ):
                 analytics["memory_types"][mem_type] = {
                     "count": count,
                     "average_confidence": round(avg_conf, 3) if avg_conf else 0,
                 }
 
-            pattern_result = graph.query(
-                """
+            pattern_result = graph.query("""
                 MATCH (p:Pattern)
                 WHERE p.confidence > 0.6
                 RETURN p.type, p.content, p.confidence, p.observations
                 ORDER BY p.confidence DESC
                 LIMIT 10
-                """
-            )
+                """)
             for p_type, content, confidence, observations in (
                 getattr(pattern_result, "result_set", []) or []
             ):
@@ -1759,15 +1891,15 @@ def create_recall_blueprint(
                     }
                 )
 
-            pref_result = graph.query(
-                """
+            pref_result = graph.query("""
                 MATCH (m1:Memory)-[r:PREFERS_OVER]->(m2:Memory)
                 RETURN m1.content, m2.content, r.context, r.strength
                 ORDER BY r.strength DESC
                 LIMIT 10
-                """
-            )
-            for preferred, over, context, strength in getattr(pref_result, "result_set", []) or []:
+                """)
+            for preferred, over, context, strength in (
+                getattr(pref_result, "result_set", []) or []
+            ):
                 analytics["preferences"].append(
                     {
                         "prefers": preferred,
@@ -1778,18 +1910,18 @@ def create_recall_blueprint(
                 )
 
             try:
-                temporal_result = graph.query(
-                    """
+                temporal_result = graph.query("""
                     MATCH (m:Memory)
                     WHERE m.timestamp IS NOT NULL
                     RETURN m.timestamp, m.importance
                     LIMIT 100
-                    """
-                )
+                    """)
                 from collections import defaultdict
 
                 hour_data = defaultdict(lambda: {"count": 0, "total_importance": 0})
-                for timestamp, importance in getattr(temporal_result, "result_set", []) or []:
+                for timestamp, importance in (
+                    getattr(temporal_result, "result_set", []) or []
+                ):
                     if timestamp and len(timestamp) > 13:
                         hour_str = timestamp[11:13]
                         if hour_str.isdigit():
@@ -1800,19 +1932,19 @@ def create_recall_blueprint(
                     if data["count"] > 0:
                         analytics["temporal_insights"][f"hour_{hour:02d}"] = {
                             "count": data["count"],
-                            "avg_importance": round(data["total_importance"] / data["count"], 3),
+                            "avg_importance": round(
+                                data["total_importance"] / data["count"], 3
+                            ),
                         }
             except Exception:
                 pass
 
-            entity_result = graph.query(
-                """
+            entity_result = graph.query("""
                 MATCH (m:Memory)
                 WHERE m.metadata IS NOT NULL
                 RETURN m.metadata
                 LIMIT 200
-                """
-            )
+                """)
             from collections import Counter
 
             entities = Counter()
@@ -1835,14 +1967,12 @@ def create_recall_blueprint(
                             entities[val] += 1
             analytics["entity_frequency"] = dict(entities.most_common(50))
 
-            conf_result = graph.query(
-                """
+            conf_result = graph.query("""
                 MATCH (m:Memory)
                 WHERE m.confidence IS NOT NULL
                 RETURN m.confidence
                 LIMIT 500
-                """
-            )
+                """)
             conf_dist: Dict[str, int] = {"low": 0, "medium": 0, "high": 0}
             for (conf,) in getattr(conf_result, "result_set", []) or []:
                 try:
@@ -1856,7 +1986,10 @@ def create_recall_blueprint(
                 else:
                     conf_dist["high"] += 1
             analytics["confidence_distribution"] = conf_dist
-            return jsonify({"status": "success", "analytics": analytics, "elapsed_ms": 0}), 200
+            return (
+                jsonify({"status": "success", "analytics": analytics, "elapsed_ms": 0}),
+                200,
+            )
         except Exception as e:
             logger.error(f"Analyze failed: {e}")
             return jsonify({"error": "Analyze failed", "details": str(e)}), 500
@@ -1872,7 +2005,9 @@ def create_recall_blueprint(
         rel_types_param = (request.args.get("relationship_types") or "").strip()
         if rel_types_param:
             requested = [
-                part.strip().upper() for part in rel_types_param.split(",") if part.strip()
+                part.strip().upper()
+                for part in rel_types_param.split(",")
+                if part.strip()
             ]
             rel_types = [t for t in requested if (t in allowed if allowed else True)]
             if not rel_types and allowed:
@@ -1922,7 +2057,9 @@ def create_recall_blueprint(
             try:
                 result = graph.query(fallback_query, params)
             except Exception:
-                logger.exception("Failed to traverse related memories for %s", memory_id)
+                logger.exception(
+                    "Failed to traverse related memories for %s", memory_id
+                )
                 abort(500, description="Failed to fetch related memories")
 
         related: List[Dict[str, Any]] = []

@@ -78,7 +78,9 @@ def create_health_blueprint(
             "sync_status": sync_status,
             "enrichment": {
                 "status": "running" if enrichment_thread_alive else "stopped",
-                "queue_depth": state.enrichment_queue.qsize() if state.enrichment_queue else 0,
+                "queue_depth": (
+                    state.enrichment_queue.qsize() if state.enrichment_queue else 0
+                ),
                 "pending": enrichment_pending,
                 "inflight": enrichment_inflight,
                 "processed": state.enrichment_stats.successes,
@@ -91,6 +93,7 @@ def create_health_blueprint(
         # BM25 status
         try:
             from automem.search.bm25 import BM25_ENABLED, get_index_count
+
             health_data["bm25"] = {
                 "enabled": BM25_ENABLED,
                 "indexed": get_index_count() if BM25_ENABLED else 0,
