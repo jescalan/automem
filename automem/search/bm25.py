@@ -255,9 +255,7 @@ def backfill_from_graph(graph: Any) -> int:
         return 0
 
     try:
-        result = graph.query(
-            "MATCH (m:Memory) RETURN m.id, m.content, m.tags, m.type, m.stored_at"
-        )
+        result = graph.query("MATCH (m:Memory) RETURN m.id, m.content, m.tags, m.type, m.stored_at")
         count = 0
         for row in result.result_set:
             mid, content, tags_raw, mtype, stored_at = row

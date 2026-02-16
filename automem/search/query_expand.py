@@ -149,9 +149,7 @@ def expand_query(
         else:
             extra_params: Dict[str, Any] = {"max_tokens": 200}
             if not model.startswith(("o", "gpt-5")):
-                extra_params["temperature"] = (
-                    0.7  # Some creativity for diverse alternatives
-                )
+                extra_params["temperature"] = 0.7  # Some creativity for diverse alternatives
 
             response = client.chat.completions.create(
                 model=model,
@@ -181,9 +179,7 @@ def expand_query(
             return []
 
         alternatives = [
-            str(item).strip()
-            for item in parsed
-            if isinstance(item, str) and len(item.strip()) >= 3
+            str(item).strip() for item in parsed if isinstance(item, str) and len(item.strip()) >= 3
         ][:max_alternatives]
 
         # Cache the result
@@ -205,7 +201,5 @@ def expand_query(
         return alternatives
 
     except Exception:
-        logger.warning(
-            "Query expansion failed, using original query only", exc_info=True
-        )
+        logger.warning("Query expansion failed, using original query only", exc_info=True)
         return []

@@ -27,9 +27,7 @@ RERANK_ENABLED = os.environ.get("RERANK_ENABLED", "true").lower() in (
     "yes",
 )
 RERANK_MODEL = os.environ.get("RERANK_MODEL", "gpt-4.1-nano")
-RERANK_TOP_N = int(
-    os.environ.get("RERANK_TOP_N", "20")
-)  # How many candidates to rerank
+RERANK_TOP_N = int(os.environ.get("RERANK_TOP_N", "20"))  # How many candidates to rerank
 RERANK_TIMEOUT = float(os.environ.get("RERANK_TIMEOUT", "15.0"))  # Seconds
 # Separate API key/base for reranking (falls back to main OpenAI client if not set)
 RERANK_API_KEY = os.environ.get("RERANK_API_KEY", "")
@@ -187,10 +185,7 @@ def rerank(
         parsed = json.loads(raw)
         if isinstance(parsed, dict):
             scores_list = (
-                parsed.get("results")
-                or parsed.get("scores")
-                or parsed.get("rankings")
-                or []
+                parsed.get("results") or parsed.get("scores") or parsed.get("rankings") or []
             )
             if not scores_list:
                 # Try to find any list value
