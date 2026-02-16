@@ -1752,6 +1752,7 @@ def create_recall_blueprint(
     serialize_node: Callable[[Any], Dict[str, Any]] | None = None,
     summarize_relation_node: Callable[[Dict[str, Any]], Dict[str, Any]] | None = None,
     on_access: Optional[Callable[[List[str]], None]] = None,
+    get_openai_client: Optional[Callable[[], Any]] = None,
 ) -> Blueprint:
     bp = Blueprint("recall", __name__)
 
@@ -1777,6 +1778,7 @@ def create_recall_blueprint(
             relation_limit=relation_limit,
             expansion_limit_default=RECALL_EXPANSION_LIMIT,
             on_access=on_access,
+            get_openai_client=get_openai_client,
         )
 
     @bp.route("/startup-recall", methods=["GET"])

@@ -3911,6 +3911,7 @@ recall_bp = create_recall_blueprint(
     _serialize_node,
     _summarize_relation_node,
     update_last_accessed,
+    get_openai_client=get_openai_client,
 )
 
 memory_bp = create_memory_blueprint_full(
