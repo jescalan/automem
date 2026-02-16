@@ -78,9 +78,7 @@ def create_health_blueprint(
             "sync_status": sync_status,
             "enrichment": {
                 "status": "running" if enrichment_thread_alive else "stopped",
-                "queue_depth": (
-                    state.enrichment_queue.qsize() if state.enrichment_queue else 0
-                ),
+                "queue_depth": (state.enrichment_queue.qsize() if state.enrichment_queue else 0),
                 "pending": enrichment_pending,
                 "inflight": enrichment_inflight,
                 "processed": state.enrichment_stats.successes,
