@@ -1,0 +1,17 @@
+[Unit]
+Description=AutoMem Transcript Sync
+Requires=automem.service
+After=automem.service
+
+[Service]
+Type=simple
+WorkingDirectory=/home/clawdbot/clawd/automem
+ExecStart=/usr/bin/python3 /home/clawdbot/clawd/automem/scripts/transcript-sync.py --interval 30
+Restart=always
+RestartSec=10
+User=clawdbot
+Environment=AUTOMEM_ENDPOINT=http://localhost:8001
+Environment=AUTOMEM_API_TOKEN=olly-automem-2026
+
+[Install]
+WantedBy=multi-user.target

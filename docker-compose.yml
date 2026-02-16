@@ -4,14 +4,14 @@ services:
   falkordb:
     image: falkordb/falkordb:latest
     ports:
-      - "6379:6379" # Redis/FalkorDB
-      - "3000:3000" # Browser UI
+      - "127.0.0.1:6379:6379" # Redis/FalkorDB (localhost only)
+      - "127.0.0.1:3000:3000" # Browser UI (localhost only)
     volumes:
-      - falkordb_data:/data # Persistent data
+      - falkordb_data:/var/lib/falkordb/data # Persistent data (actual data location, /data is symlink)
       - ./backups/falkordb:/backups # Local backups
     environment:
       # Aggressive persistence: save every 60s if 1 key changed, enable AOF
-      - REDIS_ARGS=--save 60 1 --appendonly yes --appendfsync everysec --dir /data
+      - REDIS_ARGS=--save 60 1 --appendonly yes --appendfsync everysec --dir /var/lib/falkordb/data
       - REDIS_PASSWORD=${FALKORDB_PASSWORD:-}
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -23,16 +23,21 @@ services:
   qdrant:
     image: qdrant/qdrant:v1.11.3
     ports:
-      - "6333:6333"
+      - "127.0.0.1:6333:6333" # localhost only
     volumes:
       - qdrant_data:/qdrant/storage
       - ./backups/qdrant:/backups
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
     restart: unless-stopped
 
   flask-api:
     build: .
     ports:
-      - "8001:8001" # Flask API
+      - "127.0.0.1:8001:8001" # Flask API (localhost)
+      - "100.105.185.42:8001:8001" # Flask API (Tailscale only)
     environment:
       FLASK_ENV: development
       FLASK_DEBUG: "1"
@@ -45,13 +50,21 @@ services:
       AUTOMEM_API_TOKEN: ${AUTOMEM_API_TOKEN:-test-token}
       ADMIN_API_TOKEN: ${ADMIN_API_TOKEN:-test-admin-token}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      RERANK_API_KEY: ${RERANK_API_KEY:-}
+      RERANK_BASE_URL: ${RERANK_BASE_URL:-}
+      RERANK_MODEL: ${RERANK_MODEL:-gpt-4.1-nano}
       EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-auto}  # auto|openai|local|placeholder
       AUTOMEM_MODELS_DIR: /root/.config/automem/models  # Keep in sync with volume mount
+      MEMORY_CONTENT_SOFT_LIMIT: "1000"   # Trigger summarization above this
+      MEMORY_CONTENT_HARD_LIMIT: "4000"   # Reject above this (was 2000)
+      MEMORY_AUTO_SUMMARIZE: "false"      # Enable to auto-summarize long content
     depends_on:
       falkordb:
         condition: service_healthy
       qdrant:
         condition: service_started
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - .:/app
       - fastembed_models:/root/.config/automem/models  # Persist embedding models
@@ -61,7 +74,7 @@ services:
   falkordb-browser:
     image: falkordb/falkordb-browser:latest
     ports:
-      - "3001:3000" # Browser UI on different port
+      - "127.0.0.1:3001:3000" # Browser UI (localhost only)
     environment:
       - FALKORDB_URL=redis://${FALKORDB_PASSWORD:+:${FALKORDB_PASSWORD}@}falkordb:6379
     depends_on:

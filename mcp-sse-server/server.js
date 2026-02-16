@@ -783,7 +783,7 @@ const port = process.env.PORT || 8080;
 // Avoid side effects on import (tests/tools may import this module).
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const app = createApp();
-  app.listen(port, () => {
+  app.listen(port, '100.105.185.42', () => {  // Tailscale only
     console.log(`AutoMem MCP SSE server listening on :${port}`);
   });
 }

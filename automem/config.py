@@ -100,7 +100,7 @@ MEMORY_AUTO_SUMMARIZE = os.getenv("MEMORY_AUTO_SUMMARIZE", "true").lower() not i
 MEMORY_SUMMARY_TARGET_LENGTH = int(os.getenv("MEMORY_SUMMARY_TARGET_LENGTH", "300"))
 
 # Memory types for classification
-MEMORY_TYPES = {"Decision", "Pattern", "Preference", "Style", "Habit", "Insight", "Context"}
+MEMORY_TYPES = {"Decision", "Pattern", "Preference", "Style", "Habit", "Insight", "Context", "Work"}
 
 # Type aliases for normalization (lowercase and legacy types → canonical)
 # Non-canonical types are auto-mapped to canonical types on store

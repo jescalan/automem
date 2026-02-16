@@ -17,7 +17,7 @@ from typing import Any, Dict
 
 from dotenv import load_dotenv
 from falkordb import FalkorDB
-from openai import OpenAI
+import subprocess
 from qdrant_client import QdrantClient
 
 # Load environment
@@ -30,7 +30,7 @@ FALKORDB_PASSWORD = os.getenv("FALKORDB_PASSWORD")
 QDRANT_URL = os.getenv("QDRANT_URL", "http://localhost:6333")
 QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
 QDRANT_COLLECTION = os.getenv("QDRANT_COLLECTION", "memories")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+# LLM calls now routed through Clawdbot gateway (OAuth)
 CLASSIFICATION_MODEL = os.getenv("CLASSIFICATION_MODEL", "gpt-4o-mini")
 
 # Valid memory types
@@ -76,23 +76,57 @@ def get_fallback_memories(client) -> list[Dict[str, Any]]:
     return memories
 
 
-def classify_with_llm(openai_client: OpenAI, content: str) -> tuple[str, float]:
-    """Use OpenAI to classify memory type."""
+def classify_with_llm(content: str) -> tuple[str, float]:
+    """Use Clawdbot to classify memory type."""
     try:
-        response = openai_client.chat.completions.create(
-            model=CLASSIFICATION_MODEL,
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": content[:1000]},
+        prompt = f"{SYSTEM_PROMPT}\n\nClassify this memory:\n{content[:1000]}"
+        
+        result = subprocess.run(
+            [
+                "clawdbot", "agent",
+                "--session-id", f"memory-classify-{os.getpid()}",
+                "--message", prompt,
+                "--json",
+                "--timeout", "60"
             ],
-            response_format={"type": "json_object"},
-            temperature=0.3,
-            max_tokens=50,
+            capture_output=True,
+            text=True,
+            timeout=90
         )
-
-        result = json.loads(response.choices[0].message.content)
-        memory_type = result.get("type", "Context")
-        confidence = float(result.get("confidence", 0.7))
+        
+        if result.returncode != 0:
+            print(f"   ⚠️  Classification failed: {result.stderr[:100]}")
+            return "Context", 0.5
+        
+        # Parse the response to extract JSON
+        output = result.stdout.strip()
+        
+        # Try to parse as JSON first
+        try:
+            response = json.loads(output)
+            if isinstance(response, dict):
+                # Navigate to find the actual content
+                text = response.get("response") or response.get("content") or str(response)
+            else:
+                text = str(response)
+        except json.JSONDecodeError:
+            text = output
+        
+        # Extract JSON from text (might be wrapped in markdown)
+        if "```json" in text:
+            text = text.split("```json")[1].split("```")[0].strip()
+        elif "```" in text:
+            text = text.split("```")[1].split("```")[0].strip()
+        
+        # Find JSON object in text
+        json_start = text.find("{")
+        if json_start >= 0:
+            json_end = text.rfind("}") + 1
+            text = text[json_start:json_end]
+        
+        classification = json.loads(text)
+        memory_type = classification.get("type", "Context")
+        confidence = float(classification.get("confidence", 0.7))
 
         # Validate type
         if memory_type not in VALID_TYPES:
@@ -145,9 +179,7 @@ def main():
     print("=" * 70)
     print()
 
-    if not OPENAI_API_KEY:
-        print("❌ OPENAI_API_KEY not found in environment!")
-        sys.exit(1)
+    # LLM calls routed through Clawdbot gateway (OAuth)
 
     # Connect to FalkorDB
     print(f"🔌 Connecting to FalkorDB at {FALKORDB_HOST}:{FALKORDB_PORT}")
@@ -174,10 +206,9 @@ def main():
             print(f"⚠️  Qdrant connection failed: {e}")
             print("   (Will update FalkorDB only)\n")
 
-    # Initialize OpenAI
-    print(f"🤖 Initializing OpenAI client (model: {CLASSIFICATION_MODEL})")
-    openai_client = OpenAI(api_key=OPENAI_API_KEY)
-    print("✅ OpenAI ready\n")
+    # LLM calls via Clawdbot
+    print("🤖 Using Clawdbot for LLM classification (OAuth routing)")
+    print("✅ Ready\n")
 
     # Get fallback memories
     memories = get_fallback_memories(falkor_client)
@@ -217,7 +248,7 @@ def main():
         print(f"[{i}/{len(memories)}] {content_preview}")
 
         # Classify with LLM
-        new_type, new_confidence = classify_with_llm(openai_client, content)
+        new_type, new_confidence = classify_with_llm(content)
         type_counts[new_type] = type_counts.get(new_type, 0) + 1
 
         print(f"   → {new_type} (confidence: {new_confidence:.2f})")

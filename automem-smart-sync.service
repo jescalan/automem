@@ -1,0 +1,16 @@
+[Unit]
+Description=AutoMem Smart Transcript Sync (LLM extraction)
+Requires=automem.service
+After=automem.service
+
+[Service]
+Type=simple
+WorkingDirectory=/home/clawdbot/clawd/automem
+EnvironmentFile=/home/clawdbot/clawd/automem/.env
+ExecStart=/usr/bin/python3 /home/clawdbot/clawd/automem/scripts/smart-transcript-sync.py --interval 300
+Restart=always
+RestartSec=30
+User=clawdbot
+
+[Install]
+WantedBy=multi-user.target

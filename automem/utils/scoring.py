@@ -171,6 +171,21 @@ def _compute_metadata_score(
         result, memory, tag_terms, metadata_terms, context_profile
     )
 
+    # Source quality score: original sources > extracted echoes
+    # Original sources (direct input, granola, no source_session) get full weight
+    # Extracted echoes (have source_session and "extracted" tag) get reduced weight
+    source_session = metadata.get("source_session") if isinstance(metadata, dict) else None
+    is_extracted = "extracted" in tag_terms
+    is_original = (
+        source_session is None or
+        "granola" in tag_terms or
+        "direct" in tag_terms or
+        "meeting" in tag_terms
+    )
+    
+    # Original sources: 1.0, extracted echoes: 0.7
+    source_quality = 1.0 if is_original else (0.7 if is_extracted else 0.85)
+
     final = (
         SEARCH_WEIGHT_VECTOR * vector_component
         + SEARCH_WEIGHT_KEYWORD * keyword_component
@@ -181,7 +196,7 @@ def _compute_metadata_score(
         + SEARCH_WEIGHT_RECENCY * recency_score
         + SEARCH_WEIGHT_EXACT * exact_match
         + context_bonus
-    )
+    ) * source_quality  # Apply source quality multiplier
 
     components = {
         "vector": vector_component,
@@ -193,6 +208,7 @@ def _compute_metadata_score(
         "recency": recency_score,
         "exact": exact_match,
         "context": context_bonus,
+        "source_quality": source_quality,
     }
 
     return final, components
