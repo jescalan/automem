@@ -18,7 +18,7 @@ from typing import Optional
 
 # Configuration
 AUTOMEM_ENDPOINT = os.environ.get("AUTOMEM_ENDPOINT", "http://localhost:8001")
-AUTOMEM_API_TOKEN = os.environ.get("AUTOMEM_API_TOKEN", "olly-automem-2026")
+AUTOMEM_API_TOKEN = os.environ.get("AUTOMEM_API_TOKEN", "86d634aaa78b4376bad0935e09a4ee4c76c8cbb30280c60d")
 # Clawdbot gateway config (for LLM calls via OAuth routing)
 CLAWDBOT_GATEWAY_URL = os.environ.get("CLAWDBOT_GATEWAY_URL", "http://localhost:18789")
 CLAWDBOT_GATEWAY_TOKEN = os.environ.get("CLAWDBOT_GATEWAY_TOKEN", "")

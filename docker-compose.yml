@@ -58,6 +58,9 @@ services:
       MEMORY_CONTENT_SOFT_LIMIT: "1000"   # Trigger summarization above this
       MEMORY_CONTENT_HARD_LIMIT: "4000"   # Reject above this (was 2000)
       MEMORY_AUTO_SUMMARIZE: "false"      # Enable to auto-summarize long content
+      MEMORY_DEDUP_ENABLED: ${MEMORY_DEDUP_ENABLED:-false}
+      MEMORY_DEDUP_MODEL: ${MEMORY_DEDUP_MODEL:-gpt-4o-mini}
+      MEMORY_DEDUP_SIMILARITY_THRESHOLD: ${MEMORY_DEDUP_SIMILARITY_THRESHOLD:-0.70}
     depends_on:
       falkordb:
         condition: service_healthy

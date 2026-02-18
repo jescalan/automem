@@ -18,7 +18,7 @@ from typing import List, Tuple
 import redis
 
 ENDPOINT = "http://localhost:8001"
-TOKEN = "olly-automem-2026"
+TOKEN = "86d634aaa78b4376bad0935e09a4ee4c76c8cbb30280c60d"
 HEADERS = {"Authorization": f"Bearer {TOKEN}"}
 
 # FalkorDB connection (Redis-compatible)

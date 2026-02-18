@@ -15,9 +15,40 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
+
+
+def _get_dedup_client() -> Optional[Any]:
+    """Get an OpenAI-compatible client for dedup classification.
+
+    Tries these sources in order:
+    1. MEMORY_DEDUP_API_KEY + MEMORY_DEDUP_BASE_URL (explicit dedup config)
+    2. RERANK_API_KEY + RERANK_BASE_URL (shared LLM proxy, e.g. OpenClaw gateway)
+    3. OPENAI_API_KEY (direct OpenAI)
+    """
+    try:
+        from openai import OpenAI
+    except ImportError:
+        logger.warning("openai package not available for dedup")
+        return None
+
+    for key_env, url_env in [
+        ("MEMORY_DEDUP_API_KEY", "MEMORY_DEDUP_BASE_URL"),
+        ("RERANK_API_KEY", "RERANK_BASE_URL"),
+        ("OPENAI_API_KEY", None),
+    ]:
+        api_key = os.environ.get(key_env)
+        if api_key:
+            base_url = os.environ.get(url_env) if url_env else None
+            kwargs = {"api_key": api_key}
+            if base_url:
+                kwargs["base_url"] = base_url
+            return OpenAI(**kwargs)
+
+    return None
 
 # Minimum vector similarity to even consider dedup (below this, always ADD)
 SIMILARITY_THRESHOLD = 0.70
@@ -62,7 +93,7 @@ def check_dedup(
     generate_embedding: Callable[[str], List[float]],
     qdrant_client: Any,
     collection_name: str,
-    openai_client: Any,
+    openai_client: Any = None,
     model: str = "gpt-4o-mini",
     similarity_threshold: float = SIMILARITY_THRESHOLD,
 ) -> Dict[str, Any]:
@@ -78,7 +109,14 @@ def check_dedup(
     """
     result: Dict[str, Any] = {"action": "ADD", "candidates": []}
 
-    if not qdrant_client or not openai_client:
+    if not qdrant_client:
+        return result
+
+    # Use provided client or create our own
+    if not openai_client:
+        openai_client = _get_dedup_client()
+    if not openai_client:
+        logger.warning("No LLM client available for dedup, defaulting to ADD")
         return result
 
     # Step 1: Generate embedding for the new content

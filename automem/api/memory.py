@@ -226,14 +226,12 @@ def create_memory_blueprint_full(
         dedup_result = None
         if MEMORY_DEDUP_ENABLED and not skip_dedup:
             qdrant_client = get_qdrant_client()
-            openai_client = get_openai_client() if get_openai_client else None
-            if qdrant_client and openai_client:
+            if qdrant_client:
                 dedup_result = check_dedup(
                     new_content=content,
                     generate_embedding=generate_real_embedding,
                     qdrant_client=qdrant_client,
                     collection_name=collection_name,
-                    openai_client=openai_client,
                     model=MEMORY_DEDUP_MODEL,
                     similarity_threshold=MEMORY_DEDUP_SIMILARITY_THRESHOLD,
                 )

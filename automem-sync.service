@@ -11,7 +11,7 @@ Restart=always
 RestartSec=10
 User=clawdbot
 Environment=AUTOMEM_ENDPOINT=http://localhost:8001
-Environment=AUTOMEM_API_TOKEN=olly-automem-2026
+Environment=AUTOMEM_API_TOKEN=86d634aaa78b4376bad0935e09a4ee4c76c8cbb30280c60d
 
 [Install]
 WantedBy=multi-user.target

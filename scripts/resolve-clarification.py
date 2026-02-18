@@ -18,7 +18,7 @@ from datetime import datetime
 
 CLARIFICATION_QUEUE_FILE = Path(os.path.expanduser("~/.clawdbot/memory-clarification-queue.json"))
 AUTOMEM_ENDPOINT = os.environ.get("AUTOMEM_ENDPOINT", "http://localhost:8001")
-AUTOMEM_API_TOKEN = os.environ.get("AUTOMEM_API_TOKEN", "olly-automem-2026")
+AUTOMEM_API_TOKEN = os.environ.get("AUTOMEM_API_TOKEN", "86d634aaa78b4376bad0935e09a4ee4c76c8cbb30280c60d")
 
 
 def load_queue() -> list:

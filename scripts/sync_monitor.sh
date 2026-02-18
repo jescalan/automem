@@ -4,7 +4,7 @@
 THRESHOLD=10  # Alert if difference > 10
 
 # Get counts
-HEALTH=$(curl -s "http://localhost:8001/health" -H "Authorization: Bearer olly-automem-2026")
+HEALTH=$(curl -s "http://localhost:8001/health" -H "Authorization: Bearer 86d634aaa78b4376bad0935e09a4ee4c76c8cbb30280c60d")
 FALKOR_COUNT=$(echo "$HEALTH" | jq -r '.memory_count // 0')
 QDRANT_COUNT=$(echo "$HEALTH" | jq -r '.vector_count // 0')
 SYNC_STATUS=$(echo "$HEALTH" | jq -r '.sync_status // "unknown"')

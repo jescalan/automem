@@ -887,6 +887,146 @@ def _slugify(value: str) -> str:
     return cleaned.strip("-")
 
 
+# ── Entity normalization ─────────────────────────────────────────────
+# Maps slugified entity names → (canonical_name, canonical_category).
+# Applied after extraction to merge variants and fix mis-categorisations.
+ENTITY_ALIASES: Dict[str, Tuple[str, Optional[str]]] = {
+    # Format: "slug": ("Canonical Name", "category_override_or_None")
+    # ── People ──
+    "ignacio": ("Ignacio Rueda", "people"),
+    "ignacio-rueda": ("Ignacio Rueda", "people"),
+    "jeff": ("Jeff Escalante", "people"),
+    "jeff-escalante": ("Jeff Escalante", "people"),
+    "jacob": ("Jacob Foshee", "people"),
+    "jacob-foshee": ("Jacob Foshee", "people"),
+    "rob": ("Rob Soriano", "people"),
+    "rob-soriano": ("Rob Soriano", "people"),
+    "bruno": ("Bruno Lim", "people"),
+    "bruno-lim": ("Bruno Lim", "people"),
+    "christina": ("Christina Escalante", "people"),
+    "christina-escalante": ("Christina Escalante", "people"),
+    "sofia": ("Sofia Escalante", "people"),
+    "sofia-escalante": ("Sofia Escalante", "people"),
+    "paul-twyman": ("Paul Twyman", "people"),
+    "paul-twyman-s": ("Paul Twyman", "people"),
+    "roy": ("Roy Anger", "people"),
+    "roy-anger": ("Roy Anger", "people"),
+    "daniel": ("Daniel Moerner", "people"),
+    "daniel-moerner": ("Daniel Moerner", "people"),
+    "jeremy": ("Jeremy Wright", "people"),
+    "jeremy-wright": ("Jeremy Wright", "people"),
+    "joe": ("Joe Shekmer", "people"),
+    "joe-shekmer": ("Joe Shekmer", "people"),
+    "cole": ("Cole Martin", "people"),
+    "cole-martin": ("Cole Martin", "people"),
+    "alexis": ("Alexis Aguilar", "people"),
+    "alexis-aguilar": ("Alexis Aguilar", "people"),
+    "cody": ("Cody Ogden", "people"),
+    "cody-ogden": ("Cody Ogden", "people"),
+    "braden": ("Braden Sidoti", "people"),
+    "brayden": ("Braden Sidoti", "people"),
+    "braden-sidoti": ("Braden Sidoti", "people"),
+    "brayden-sidoti": ("Braden Sidoti", "people"),
+    "colin": ("Colin Sidoti", "people"),
+    "colin-sidoti": ("Colin Sidoti", "people"),
+    "tom": ("Tom", "people"),
+    "harris": ("Harris", "people"),
+    "kyle": ("Kyle", "people"),
+    "nick": ("Nick", "people"),
+    "ryan": ("Ryan", "people"),
+    "brandon": ("Brandon", "people"),
+    "kostas": ("Kostas", "people"),
+    "mari": ("Mari", "people"),
+    # ── Tools/services ──
+    "create-linear": ("Linear", "tools"),
+    "linear": ("Linear", "tools"),
+    "sdk": ("Clerk SDK", "tools"),
+    "clerk-sdk": ("Clerk SDK", "tools"),
+    "bapi": ("BAPI", "tools"),
+    "clickhouse": ("ClickHouse", "tools"),
+    "sendgrid": ("SendGrid", "tools"),
+    "sendgrid-ip": ("SendGrid", "tools"),
+    "cloudflare": ("Cloudflare", "tools"),
+    "cloudflare-queues": ("Cloudflare Queues", "tools"),
+    "cloudflare-worker": ("Cloudflare Workers", "tools"),
+    "cloudflare-workers": ("Cloudflare Workers", "tools"),
+    "slack": ("Slack", "tools"),
+    "qdrant": ("Qdrant", "tools"),
+    "falkordb": ("FalkorDB", "tools"),
+    "tailscale": ("Tailscale", "tools"),
+    "github": ("GitHub", "tools"),
+    "telegram": ("Telegram", "tools"),
+    "caddy": ("Caddy", "tools"),
+    "flask": ("Flask", "tools"),
+    "lobster": ("Lobster", "tools"),
+    "home-assistant": ("Home Assistant", "tools"),
+    "lunch-money": ("Lunch Money", "tools"),
+    "vercel": ("Vercel", "tools"),
+    "clawdhub": ("ClawdHub", "tools"),
+    "automem": ("AutoMem", "tools"),
+    "openclaw": ("OpenClaw", "tools"),
+    "clawdbot": ("Clawdbot", "tools"),
+    "flex": ("Flex", "tools"),
+    "rrf": ("RRF", "tools"),
+    "bm25": ("BM25", "tools"),
+    "execos": ("ExecOS", "tools"),
+    "claude-code": ("Claude Code", "tools"),
+    "mcp": ("MCP", "tools"),
+    "openai": ("OpenAI", "tools"),
+    "replit": ("Replit", "tools"),
+    # ── Organizations ──
+    "clerk": ("Clerk", "organizations"),
+    # ── Projects ──
+    "memory-jeffs-bot": ("memory.jeffs.bot", "projects"),
+    "memory.jeffs.bot": ("memory.jeffs.bot", "projects"),
+    "memory-jeffs.bot": ("memory.jeffs.bot", "projects"),
+    "clerk-firetiger": ("Firetiger", "projects"),
+    "firetiger": ("Firetiger", "projects"),
+    "stockbot": ("Stockbot", "projects"),
+    "sign-in-button": ("Sign In Button", "projects"),
+    "signinbutton": ("Sign In Button", "projects"),
+}
+
+# Patterns that indicate spaCy garbage (sentence fragments parsed as entities)
+_GARBAGE_ENTITY_PATTERNS = [
+    re.compile(r"^(add|announce|handle|handles|review|create|update|delete|remove|check|docs)\b", re.I),
+    re.compile(r"^(dia|phase|core|key|plain|ha|loe|pjl|rdb|resel)\b", re.I),
+    re.compile(r"\bsplit$", re.I),
+    re.compile(r"^[a-z]+-[a-z]+-[a-z]+-[a-z]+", re.I),  # overly-hyphenated slugs
+    re.compile(r"postmaster|webhook|cron|heartbeat|pipeline", re.I),
+    re.compile(r"scheduling.*analysis|logic.*analysis", re.I),
+    re.compile(r"reciprocal.*rank|uses-reciprocal", re.I),
+    re.compile(r"credentials.*service|user.*webhooks.*event", re.I),
+    re.compile(r"^\d+s?$"),  # bare numbers like "600s"
+    re.compile(r"^(include|always|open|get|set|config|context|absolute|undercut|agentic|sonnet|oauth|dns|path|home|api|cli|utc)$", re.I),
+    re.compile(r"interesting.threads|clerk.demo|clerk.events.tab|dev.success|tailscale.ip|jeff.cole|jack.h.woods|braden.colin|rob.bruno", re.I),
+]
+
+
+def _normalize_entity(
+    name: str, category: str
+) -> Optional[Tuple[str, str]]:
+    """Normalize an extracted entity name through aliases and garbage filters.
+
+    Returns (canonical_name, canonical_category) or None if it should be dropped.
+    """
+    slug = _slugify(name)
+    if not slug:
+        return None
+
+    # Check garbage patterns
+    for pattern in _GARBAGE_ENTITY_PATTERNS:
+        if pattern.search(name) or pattern.search(slug):
+            return None
+
+    # Check alias map
+    if slug in ENTITY_ALIASES:
+        canonical_name, cat_override = ENTITY_ALIASES[slug]
+        return (canonical_name, cat_override or category)
+
+    return (name, category)
+
+
 def _is_valid_entity(
     value: str, *, allow_lower: bool = False, max_words: Optional[int] = None
 ) -> bool:
@@ -986,90 +1126,50 @@ def generate_summary(
 
 
 def extract_entities(content: str) -> Dict[str, List[str]]:
-    """Extract entities from memory content using spaCy when available."""
-    result: Dict[str, Set[str]] = {
-        "tools": set(),
-        "projects": set(),
-        "people": set(),
-        "concepts": set(),
-        "organizations": set(),
+    """Extract entities from memory content using LLM, with alias normalization.
+
+    Pipeline:
+    1. LLM extraction (Haiku) — understands context, avoids garbage
+    2. Normalize through ENTITY_ALIASES — merge variants to canonical names
+    3. Filter through garbage patterns — catch any remaining noise
+
+    Falls back to empty if LLM is unavailable.
+    """
+    empty: Dict[str, List[str]] = {
+        "tools": [],
+        "projects": [],
+        "people": [],
+        "concepts": [],
+        "organizations": [],
     }
 
     text = (content or "").strip()
     if not text:
-        return {key: [] for key in result}
+        return empty
 
-    nlp = _get_spacy_nlp()
-    if nlp is not None:
-        try:
-            doc = nlp(text)
-            for ent in doc.ents:
-                value = ent.text.strip()
-                if not _is_valid_entity(value, allow_lower=False, max_words=6):
-                    continue
-                if ent.label_ in {"PERSON"}:
-                    result["people"].add(value)
-                elif ent.label_ in {"ORG"}:
-                    result["organizations"].add(value)
-                elif ent.label_ in {"PRODUCT", "WORK_OF_ART", "LAW"}:
-                    result["tools"].add(value)
-                elif ent.label_ in {"EVENT", "GPE", "LOC", "NORP"}:
-                    result["concepts"].add(value)
-        except Exception:  # pragma: no cover - defensive
-            logger.exception("spaCy entity extraction failed")
+    # ── Step 1: LLM-based extraction ──
+    from automem.search.entity_extract import extract_entities_llm
 
-    # Regex-based fallbacks to capture simple patterns
-    for match in re.findall(
-        r"(?:with|met with|meeting with|talked to|spoke with)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)",
-        text,
-    ):
-        result["people"].add(match.strip())
+    llm_result = extract_entities_llm(text)
+    if llm_result is None:
+        # LLM unavailable — return empty rather than guessing
+        return empty
 
-    tool_patterns = [
-        r"(?:use|using|deploy|deployed|with|via)\s+([A-Z][\w\-]+)",
-        r"([A-Z][\w\-]+)\s+(?:vs|versus|over|instead of)",
-    ]
-    for pattern in tool_patterns:
-        for match in re.findall(pattern, text, flags=re.IGNORECASE):
-            cleaned = match.strip()
-            if _is_valid_entity(cleaned):
-                result["tools"].add(cleaned)
+    # ── Step 2: Normalize through alias map & garbage filter ──
+    normalized: Dict[str, Set[str]] = {key: set() for key in empty}
+    for category, values in llm_result.items():
+        if category not in normalized:
+            continue
+        for value in values:
+            if not value or not isinstance(value, str):
+                continue
+            norm = _normalize_entity(value, category)
+            if norm is not None:
+                canonical_name, canonical_category = norm
+                if canonical_category in normalized:
+                    normalized[canonical_category].add(canonical_name)
 
-    for match in re.findall(r"`([^`]+)`", text):
-        cleaned = match.strip()
-        if _is_valid_entity(cleaned, allow_lower=False, max_words=4):
-            result["projects"].add(cleaned)
-
-    # Extract project names from "project called/named 'X'" pattern
-    for match in re.findall(
-        r'(?:project|repo|repository)\s+(?:called|named)\s+"([^"]+)"',
-        text,
-        re.IGNORECASE,
-    ):
-        cleaned = match.strip()
-        if _is_valid_entity(cleaned, allow_lower=False, max_words=4):
-            result["projects"].add(cleaned)
-
-    # Extract project names from 'project "X"' pattern
-    for match in re.findall(r'(?:project|repo|repository)\s+"([^"]+)"', text, re.IGNORECASE):
-        cleaned = match.strip()
-        if _is_valid_entity(cleaned, allow_lower=False, max_words=4):
-            result["projects"].add(cleaned)
-
-    for match in re.findall(r"Project\s+([A-Z][\w\-]+)", text):
-        cleaned = match.strip()
-        if _is_valid_entity(cleaned):
-            result["projects"].add(cleaned)
-
-    # Extract project names from "project: project-name" pattern (common in session starts)
-    for match in re.findall(r"(?:in |on )?project:\s+([a-z][a-z0-9\-]+)", text, re.IGNORECASE):
-        cleaned = match.strip()
-        if _is_valid_entity(cleaned, allow_lower=True):
-            result["projects"].add(cleaned)
-
-    result["tools"].difference_update(result["people"])
-
-    cleaned = {key: sorted({value for value in values if value}) for key, values in result.items()}
+    cleaned = {key: sorted(values) for key, values in normalized.items()}
     return cleaned
 
 
@@ -2269,7 +2369,8 @@ def enrich_memory(memory_id: str, *, forced: bool = False) -> bool:
     content = properties.get("content", "") or ""
     entities = extract_entities(content)
 
-    tags = list(dict.fromkeys(_normalize_tag_list(properties.get("tags"))))
+    # Strip old entity: tags so enrichment replaces them cleanly
+    tags = [t for t in dict.fromkeys(_normalize_tag_list(properties.get("tags"))) if not t.startswith("entity:")]
     entity_tags: Set[str] = set()
 
     if entities:

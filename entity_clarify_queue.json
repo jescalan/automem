@@ -1,0 +1,725 @@
+{
+  "pending": [
+    {
+      "key": "people:clara",
+      "entity_name": "Clara",
+      "category": "people",
+      "context": "**Daily Summary \u2014 Feb 16, 2026**\n\nJeff's day split between a major dream mode overhaul, Clerk strategy thinking, and family time. Dream mode got a full v3 rebuild after a hallucination bug exposed an ",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771312544.2516367
+    },
+    {
+      "key": "people:ignacio",
+      "entity_name": "Ignacio",
+      "category": "people",
+      "context": "**Proactive delegation emerging as a theme**: Ignacio's CodeRabbit rules automate SDK update prompts, ExecOS could replace Todoist, AutoMem's BM25 replaces manual memory search \u2014 Jeff is systematicall",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771315747.0432692
+    },
+    {
+      "key": "projects:personal api oauth client",
+      "entity_name": "Personal API OAuth client",
+      "category": "projects",
+      "context": "The ExecOS-as-Todoist-replacement thread connects to the \"dedicated Personal API OAuth client\" TODO \u2014 both are about consolidating personal infrastructure so it requires less ongoing maintenance, whic",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771315777.463313
+    },
+    {
+      "key": "people:olly",
+      "entity_name": "Olly",
+      "category": "people",
+      "context": "Jeff had asked Olly to fix CSS, add entity type filtering, and schedule re-enrichment \u2014 these were not yet started as of Feb 16 due to the plugin investigation.",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771337075.578189
+    },
+    {
+      "key": "tools:olly-automem-2026",
+      "entity_name": "olly-automem-2026",
+      "category": "tools",
+      "context": "Feb 16 ~10pm: Discovered that the running gateway process still had the old rotated AutoMem token (olly-automem-2026) in its environment. The automem.env file had been updated with the new token, but ",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771342658.7123652
+    },
+    {
+      "key": "organizations:plp",
+      "entity_name": "PLP",
+      "category": "organizations",
+      "context": "PLP band practice moved from Thursday to Wednesday Feb 18, 2026 (one-time override).",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771347798.3818269
+    },
+    {
+      "key": "people:sofia",
+      "entity_name": "Sofia",
+      "category": "people",
+      "context": "CRITICAL: Never write arbitrary or unexpected keys into ~/.clawdbot/clawdbot.json - any unexpected keys will break Clawdbot entirely. Only use documented config keys.",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771347899.6927702
+    },
+    {
+      "key": "people:daniel",
+      "entity_name": "Daniel",
+      "category": "people",
+      "context": "Clerk Events Tab \u2014 unified observability product coming to the dashboard. Components: (1) System Logs (Daniel + Ignacio): instrumenting codebase with handlers that track sign-up/in events and audit lo",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771348806.8388803
+    },
+    {
+      "key": "people:rob bruno",
+      "entity_name": "Rob Bruno",
+      "category": "people",
+      "context": "Clerk meeting 2026-02-12 action items: (1) Jeff: Deploy email infrastructure changes to production. (2) Jeff: Check usage numbers for API key billing projections. (3) Jeff: Send billing notification e",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771348855.3793814
+    },
+    {
+      "key": "people:braden",
+      "entity_name": "Braden",
+      "category": "people",
+      "context": "Clerk meeting 2026-02-12 action items: (1) Jeff: Deploy email infrastructure changes to production. (2) Jeff: Check usage numbers for API key billing projections. (3) Jeff: Send billing notification e",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771348855.3798373
+    },
+    {
+      "key": "people:colin",
+      "entity_name": "Colin",
+      "category": "people",
+      "context": "Clerk meeting 2026-02-12 action items: (1) Jeff: Deploy email infrastructure changes to production. (2) Jeff: Check usage numbers for API key billing projections. (3) Jeff: Send billing notification e",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771348855.3802345
+    },
+    {
+      "key": "people:harris",
+      "entity_name": "Harris",
+      "category": "people",
+      "context": "Clerk meeting 2026-02-12 action items: (1) Jeff: Deploy email infrastructure changes to production. (2) Jeff: Check usage numbers for API key billing projections. (3) Jeff: Send billing notification e",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771348855.380633
+    },
+    {
+      "key": "people:tom",
+      "entity_name": "Tom",
+      "category": "people",
+      "context": "Clerk meeting 2026-02-12 action items: (1) Jeff: Deploy email infrastructure changes to production. (2) Jeff: Check usage numbers for API key billing projections. (3) Jeff: Send billing notification e",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771348855.381006
+    },
+    {
+      "key": "people:ryan",
+      "entity_name": "Ryan",
+      "category": "people",
+      "context": "Action items from 2026-02-03 Dev Success sync: (1) Jeremy: Add Ryan to next week's meeting invite. (2) Jeremy: Announce Roy's departure and engagement survey response. (3) Jeremy: Set up temporary Rot",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771348946.8992994
+    },
+    {
+      "key": "people:roy",
+      "entity_name": "Roy",
+      "category": "people",
+      "context": "Action items from 2026-02-03 Dev Success sync: (1) Jeremy: Add Ryan to next week's meeting invite. (2) Jeremy: Announce Roy's departure and engagement survey response. (3) Jeremy: Set up temporary Rot",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771348946.8998735
+    },
+    {
+      "key": "people:kyle",
+      "entity_name": "Kyle",
+      "category": "people",
+      "context": "Action items from 2026-02-03 Dev Success sync: (1) Jeremy: Add Ryan to next week's meeting invite. (2) Jeremy: Announce Roy's departure and engagement survey response. (3) Jeremy: Set up temporary Rot",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771348946.900344
+    },
+    {
+      "key": "people:jeremy",
+      "entity_name": "Jeremy",
+      "category": "people",
+      "context": "Action items from 2026-02-03 Dev Success sync: (1) Jeremy: Add Ryan to next week's meeting invite. (2) Jeremy: Announce Roy's departure and engagement survey response. (3) Jeremy: Set up temporary Rot",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771348946.9008653
+    },
+    {
+      "key": "tools:rota",
+      "entity_name": "Rota",
+      "category": "tools",
+      "context": "Action items from 2026-02-03 Dev Success sync: (1) Jeremy: Add Ryan to next week's meeting invite. (2) Jeremy: Announce Roy's departure and engagement survey response. (3) Jeremy: Set up temporary Rot",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771348946.901485
+    },
+    {
+      "key": "people:ignacio rueda",
+      "entity_name": "Ignacio Rueda",
+      "category": "people",
+      "context": "Next steps from 2026-02-13 Ignacio 30-day check-in: (1) Continue splitting time between system logs observability and Flex backlog. (2) Create Linear ticket for SDK update process improvements. (3) Ma",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771348990.622875
+    },
+    {
+      "key": "people:cody",
+      "entity_name": "Cody",
+      "category": "people",
+      "context": "Decision from 2026-01-23 meeting: Jeff to meet with Cody about Roy transition to Sales Engineering. Jeff to present Roy transfer options by 2026-01-30 (one week deadline). Karthik to discuss org prior",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771349024.64222
+    },
+    {
+      "key": "people:karthik",
+      "entity_name": "Karthik",
+      "category": "people",
+      "context": "Decision from 2026-01-23 meeting: Jeff to meet with Cody about Roy transition to Sales Engineering. Jeff to present Roy transfer options by 2026-01-30 (one week deadline). Karthik to discuss org prior",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771349024.6433024
+    },
+    {
+      "key": "organizations:firetiger",
+      "entity_name": "Firetiger",
+      "category": "organizations",
+      "context": "Action items from 2026-02-05 Clerk/Firetiger meeting: (1) Jeff: Remove feature flag for webhook auto-injection on 2026-02-05. (2) Jeff: Complete backfill of missed instances. (3) Firetiger: Set up ale",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771349042.87018
+    },
+    {
+      "key": "people:nav",
+      "entity_name": "Nav",
+      "category": "people",
+      "context": "As of 2026-01-23, Roy needs to be transferred off the Dev Success team due to severe interpersonal issues. 6-8 people rotated through working with him and all refused to continue. Nav, Jeremy, and Rya",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771349061.9998305
+    },
+    {
+      "key": "concepts:dev success",
+      "entity_name": "Dev Success",
+      "category": "concepts",
+      "context": "As of 2026-01-23, Roy needs to be transferred off the Dev Success team due to severe interpersonal issues. 6-8 people rotated through working with him and all refused to continue. Nav, Jeremy, and Rya",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771349062.0020127
+    },
+    {
+      "key": "people:nick",
+      "entity_name": "Nick",
+      "category": "people",
+      "context": "Action items from 2026-01-22 Clerk meeting: (1) Tom: fix unsafe metadata persistence bug then implement testing token. (2) Jeff: review EU volume pricing numbers. (3) Team: thorough testing of EU pric",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771349091.889029
+    },
+    {
+      "key": "organizations:team orgs",
+      "entity_name": "Team Orgs",
+      "category": "organizations",
+      "context": "Clerk Demo 2026-02-10 next steps: (1) Force MFA releasing with Core 3, (2) Sign Up If Missing needs docs for enumeration protection and custom flow setup, PR for Clerk components not yet posted, (3) S",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771349111.5817552
+    },
+    {
+      "key": "people:kostas",
+      "entity_name": "Kostas",
+      "category": "people",
+      "context": "Action items from Clerk weekly sync 2026-02-09: Jeff contact Kostas re m2m pricing and circle back on project items. Team review webhook flag removal PR and SendGrid IP pool override removal PR. Bruno",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771349146.9805453
+    },
+    {
+      "key": "people:bruno",
+      "entity_name": "Bruno",
+      "category": "people",
+      "context": "Action items from Clerk weekly sync 2026-02-09: Jeff contact Kostas re m2m pricing and circle back on project items. Team review webhook flag removal PR and SendGrid IP pool override removal PR. Bruno",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771349146.9812267
+    },
+    {
+      "key": "people:brandon",
+      "entity_name": "Brandon",
+      "category": "people",
+      "context": "Action items from Clerk weekly sync 2026-02-09: Jeff contact Kostas re m2m pricing and circle back on project items. Team review webhook flag removal PR and SendGrid IP pool override removal PR. Bruno",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771349146.9818995
+    },
+    {
+      "key": "people:kenton",
+      "entity_name": "Kenton",
+      "category": "people",
+      "context": "Action items from Clerk weekly sync 2026-02-09: Jeff contact Kostas re m2m pricing and circle back on project items. Team review webhook flag removal PR and SendGrid IP pool override removal PR. Bruno",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771349146.9828165
+    },
+    {
+      "key": "people:jack h woods",
+      "entity_name": "Jack H Woods",
+      "category": "people",
+      "context": "Jeff designed a new 5-day workout program called 'Woods Method Expanded' based on Jack H Woods' calisthenics principles (6 foundational movements, force negatives) combined with Paul Twyman's skill/fl",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771349349.7057173
+    },
+    {
+      "key": "people:cole",
+      "entity_name": "Cole",
+      "category": "people",
+      "context": "ACTION (Jeff + Cole): Collaborate on Rippling-Slack vacation automation during Mexico City trip (late Jan/early Feb 2026).",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771349492.3511057
+    },
+    {
+      "key": "tools:lobster",
+      "entity_name": "lobster",
+      "category": "tools",
+      "context": "Lobster state extraction pattern: Use 'lobster state.get key | jq -r .[]' for single values, 'jq -r flatten | .[]' for multiline. Old tr/sed cleanup was buggy. All lobster scripts updated to use prope",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771349781.1184926
+    },
+    {
+      "key": "projects:evening wrap-up",
+      "entity_name": "Evening Wrap-Up",
+      "category": "projects",
+      "context": "Changed the process for sending Evening Wrap-Ups to a two-step method: sending the text first and then the image with a brief caption.",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771349841.781845
+    },
+    {
+      "key": "tools:ha green",
+      "entity_name": "HA Green",
+      "category": "tools",
+      "context": "User learned that their HA Green device can reboot itself when it encounters issues, suggesting it's recovering automatically rather than freezing.",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771350475.749194
+    },
+    {
+      "key": "tools:execos",
+      "entity_name": "ExecOS",
+      "category": "tools",
+      "context": "Proceed with OpenAI for this project",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771350636.318094
+    },
+    {
+      "key": "tools:studio ghibli",
+      "entity_name": "Studio Ghibli",
+      "category": "tools",
+      "context": "2026-01-21 major session: Enhanced morning briefing (weather, spending, meeting density, vibe images). Created bedtime monitoring system with Home Assistant light detection. Installed 14+ skills from ",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771350956.408181
+    },
+    {
+      "key": "people:mari",
+      "entity_name": "Mari",
+      "category": "people",
+      "context": "Mari (nanny) - more details: Never misses shifts despite constant exposure to sick kids. Makes meals for girls, takes them to events and playdates without direction. Helps clean playroom, kitchen, hou",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771351006.4235225
+    },
+    {
+      "key": "tools:dns simple",
+      "entity_name": "DNS Simple",
+      "category": "tools",
+      "context": "On 2026-02-12, DNS Simple had a full service outage that caused complete Clerk downtime. Clerk had used DNS Simple for 6 years without issues and had no redundant DNS provider. Could not extract DNS r",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771351490.0260193
+    },
+    {
+      "key": "people:jacob",
+      "entity_name": "Jacob",
+      "category": "people",
+      "context": "Nightly memory consolidation analyzed 8 entities across Jeff's work and personal projects. Key cross-entity patterns identified: non-human identity (M2M, API keys, agent auth, testing tokens) is Clerk",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771351700.8277726
+    },
+    {
+      "key": "people:auguste",
+      "entity_name": "Auguste",
+      "category": "people",
+      "context": "Clerk new pricing rollout first week results (as of 2026-02-10): 7% of customers migrated voluntarily (exceeded 5% target). 9,000 customers remaining to migrate over next 2 months. Annual vs monthly r",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771352172.0014908
+    },
+    {
+      "key": "people:kurt",
+      "entity_name": "Kurt",
+      "category": "people",
+      "context": "Clerk new pricing rollout first week results (as of 2026-02-10): 7% of customers migrated voluntarily (exceeded 5% target). 9,000 customers remaining to migrate over next 2 months. Annual vs monthly r",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771352172.0025322
+    },
+    {
+      "key": "people:nate",
+      "entity_name": "Nate",
+      "category": "people",
+      "context": "Clerk new pricing rollout first week results (as of 2026-02-10): 7% of customers migrated voluntarily (exceeded 5% target). 9,000 customers remaining to migrate over next 2 months. Annual vs monthly r",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771352172.003392
+    },
+    {
+      "key": "people:brian",
+      "entity_name": "Brian",
+      "category": "people",
+      "context": "Clerk new pricing rollout first week results (as of 2026-02-10): 7% of customers migrated voluntarily (exceeded 5% target). 9,000 customers remaining to migrate over next 2 months. Annual vs monthly r",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771352172.0041258
+    },
+    {
+      "key": "people:joe",
+      "entity_name": "Joe",
+      "category": "people",
+      "context": "Clerk new pricing rollout first week results (as of 2026-02-10): 7% of customers migrated voluntarily (exceeded 5% target). 9,000 customers remaining to migrate over next 2 months. Annual vs monthly r",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771352172.0050132
+    },
+    {
+      "key": "people:kean",
+      "entity_name": "Kean",
+      "category": "people",
+      "context": "Clerk new pricing rollout first week results (as of 2026-02-10): 7% of customers migrated voluntarily (exceeded 5% target). 9,000 customers remaining to migrate over next 2 months. Annual vs monthly r",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771352172.0057757
+    },
+    {
+      "key": "people:nikki",
+      "entity_name": "Nikki",
+      "category": "people",
+      "context": "Clerk new pricing rollout first week results (as of 2026-02-10): 7% of customers migrated voluntarily (exceeded 5% target). 9,000 customers remaining to migrate over next 2 months. Annual vs monthly r",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771352172.0066297
+    },
+    {
+      "key": "people:alexander",
+      "entity_name": "Alexander",
+      "category": "people",
+      "context": "Clerk new pricing rollout first week results (as of 2026-02-10): 7% of customers migrated voluntarily (exceeded 5% target). 9,000 customers remaining to migrate over next 2 months. Annual vs monthly r",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771352172.0073543
+    },
+    {
+      "key": "organizations:jbu.edu",
+      "entity_name": "jbu.edu",
+      "category": "organizations",
+      "context": "On 2026-02-04, Clerk email bounce messages reference Proofpoint spam filtering. Affects Apple, Sony.com, jbu.edu, and other Proofpoint-using orgs. Submitted false positive review to Proofpoint. Proofp",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771352192.8313699
+    },
+    {
+      "key": "tools:woods method expanded",
+      "entity_name": "Woods Method Expanded",
+      "category": "tools",
+      "context": "Daily summary for 2026-02-10: Heavy build day. Jeff completed first calisthenics workout (Woods Method Expanded, 63 min) with better-than-expected baselines. Built and deployed Hevy workout webhook fo",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771352613.3990746
+    },
+    {
+      "key": "people:simon",
+      "entity_name": "Simon",
+      "category": "people",
+      "context": "Meeting: Pagos <> Clerk checkin - Next Steps\nDate: 2026-01-27 @ 15:29\n\n\u2022 Connect Simon with Andy (Pagos PM) for detailed billing requirements feedback\n\u2022 Continue proactive check-ins between teams\n\u2022 Pa",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771354090.2851133
+    },
+    {
+      "key": "people:andy",
+      "entity_name": "Andy",
+      "category": "people",
+      "context": "Meeting: Pagos <> Clerk checkin - Next Steps\nDate: 2026-01-27 @ 15:29\n\n\u2022 Connect Simon with Andy (Pagos PM) for detailed billing requirements feedback\n\u2022 Continue proactive check-ins between teams\n\u2022 Pa",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771354090.286295
+    },
+    {
+      "key": "people:christina escalante",
+      "entity_name": "Christina Escalante",
+      "category": "people",
+      "context": "User's wife Christina runs Acorn to Oak Health, a concierge medicine practice that opened February 2025. Christina is a pediatrician, her partner is an adult/internal medicine doctor.",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771356400.0484083
+    },
+    {
+      "key": "projects:firetiger",
+      "entity_name": "Firetiger",
+      "category": "projects",
+      "context": "As of 2026-02-05, Firetiger public launch planned in 2 weeks (around 2026-02-19). Case study on Clerk collaboration planned for launch. Jeff available to contribute to case study.",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771362275.9796941
+    },
+    {
+      "key": "people:achille",
+      "entity_name": "achille",
+      "category": "people",
+      "context": "Meeting on 2026-02-05 at 12:31: Jeff (Clerk) / Firetiger. Attendees: Rustam Lalkaka (rustam@firetiger.com, Firetiger), achille (achille@firetiger.com, Firetiger), John Pugliesi (john@firetiger.com, Fi",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771363517.2737622
+    },
+    {
+      "key": "people:vadim",
+      "entity_name": "vadim",
+      "category": "people",
+      "context": "Meeting on 2026-02-05 at 12:31: Jeff (Clerk) / Firetiger. Attendees: Rustam Lalkaka (rustam@firetiger.com, Firetiger), achille (achille@firetiger.com, Firetiger), John Pugliesi (john@firetiger.com, Fi",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771363517.2748144
+    },
+    {
+      "key": "tools:firetiger",
+      "entity_name": "Firetiger",
+      "category": "tools",
+      "context": "Meeting on 2026-02-05 at 12:31: Jeff (Clerk) / Firetiger. Attendees: Rustam Lalkaka (rustam@firetiger.com, Firetiger), achille (achille@firetiger.com, Firetiger), John Pugliesi (john@firetiger.com, Fi",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771363517.275792
+    },
+    {
+      "key": "tools:rybbit",
+      "entity_name": "Rybbit",
+      "category": "tools",
+      "context": "User decided to use Rybbit for websites to see analytics and provided an API key for integration.",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771373731.998585
+    },
+    {
+      "key": "tools:comms_tracker.py",
+      "entity_name": "comms_tracker.py",
+      "category": "tools",
+      "context": "Discovered that the comms_tracker.py was only checking the personal email and was not correctly handling errors, leading to silent failures.",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771373764.6208801
+    },
+    {
+      "key": "people:mr. jeff",
+      "entity_name": "Mr. Jeff",
+      "category": "people",
+      "context": "Added a calendar event for 'Music practice with Mr. Jeff' on the Family calendar.",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771373807.321311
+    },
+    {
+      "key": "tools:claude code",
+      "entity_name": "Claude Code",
+      "category": "tools",
+      "context": "User expressed interest in connecting AutoMem with local Claude code instances, leading to discussions about implementing MCP support.",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771373819.8177733
+    },
+    {
+      "key": "people:christina's partner",
+      "entity_name": "Christina's partner",
+      "category": "people",
+      "context": "Christina and her partner reached a philosophical agreement on a fairer financial split in their medical practice.",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771373926.3929415
+    },
+    {
+      "key": "projects:pl",
+      "entity_name": "PL",
+      "category": "projects",
+      "context": "Meeting: PL: User (US)\nDate: 2026-01-22 @ 11:55\nAttendees: Braden Sidoti, Colin Sidoti, Kyle MacDonald, Nick",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771373985.1261342
+    },
+    {
+      "key": "people:clara escalante",
+      "entity_name": "Clara Escalante",
+      "category": "people",
+      "context": "Clara (2yo) - happy baby, cuddle muffin, generally never causes issues. Funny contrast to Sofia's intensity.",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771373997.104202
+    },
+    {
+      "key": "projects:opus-agent",
+      "entity_name": "opus-agent",
+      "category": "projects",
+      "context": "Jeff is migrating everything from `opus-agent` into the `main` OpenClaw agent workspace; the key remaining work is moving the opus-agent session transcript(s) into `~/.openclaw/agents/main/sessions/`,",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771374161.2844782
+    },
+    {
+      "key": "projects:qmd",
+      "entity_name": "QMD",
+      "category": "projects",
+      "context": "**Shedding as Strategy**: Stockbot shutdown, calendar cron reduction, and the QMD rejection are all the same move \u2014 Jeff reducing surface area when a forcing function (March 16) demands focus. This is",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771374297.5972874
+    },
+    {
+      "key": "tools:fapi",
+      "entity_name": "FAPI",
+      "category": "tools",
+      "context": "As of 2026-02-12, Clerk audit logs project in progress - new ClickHouse database for streaming audit events, adding missing events like dashboard setting changes. Will connect to Firetiger as separate",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771374336.3420584
+    },
+    {
+      "key": "tools:olly",
+      "entity_name": "Olly",
+      "category": "tools",
+      "context": "**The Monitoring Layer Jeff Never Delegates**: Whether it's Ignacio's 30-day check-in, the 95% email alert threshold, Olly monitoring workout execution, or the careful Jacob ramp \u2014 Jeff always retains",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771374344.292881
+    },
+    {
+      "key": "projects:m2m",
+      "entity_name": "M2M",
+      "category": "projects",
+      "context": "**Bandwidth Clearing as Implicit Prioritization**: Stockbot shutdown on the same day as M2M billing push. Friday workout compressed to accept reality of what gets skipped. AutoMem chosen over QMD to a",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771374364.4896853
+    },
+    {
+      "key": "people:brayden",
+      "entity_name": "Brayden",
+      "category": "people",
+      "context": "As of 2026-01-23, post-observability product priorities: (1) OAuth provider improvements led by Jacob - client credentials flow, logout endpoint, org-level permission grants; (2) SCIM implementation s",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771374590.0501835
+    },
+    {
+      "key": "people:max",
+      "entity_name": "Max",
+      "category": "people",
+      "context": "Meeting: \ud83d\udd12 Jeff / Cole 1:1 - Team Performance & Management Feedback\nDate: 2026-01-28 @ 13:05\n\n\u2022 Survey results show management scores with one detractor (likely Kenton)\n\u2022   \u2022 Jeff barely managing at t",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771374789.1409798
+    },
+    {
+      "key": "people:alex",
+      "entity_name": "Alex",
+      "category": "people",
+      "context": "Meeting: \ud83d\udd12 Jeff / Cole 1:1 - Team Performance & Management Feedback\nDate: 2026-01-28 @ 13:05\n\n\u2022 Survey results show management scores with one detractor (likely Kenton)\n\u2022   \u2022 Jeff barely managing at t",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771374789.1422594
+    },
+    {
+      "key": "organizations:resel",
+      "entity_name": "Resel",
+      "category": "organizations",
+      "context": "Meeting: Meeting with Roy - Current AI Landscape Discussion\nDate: 2026-01-28 @ 11:20\n\n\u2022 Web development AI tools evolving rapidly\n\u2022 Skills drama: Resel\u2019s evaluation showed 50% failure rate for agent s",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771374888.8926377
+    },
+    {
+      "key": "people:guy",
+      "entity_name": "Guy",
+      "category": "people",
+      "context": "Meeting: Developer Success Weekly Sync - Engineering & Product Updates\nDate: 2026-01-27 @ 12:08\n\n\u2022 Clerk Skills (AI-enabled feature)\n\u2022   \u2022 Shipping delayed this week due to iOS integration\n\u2022 Docs publ",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771374935.4608223
+    },
+    {
+      "key": "people:jordan",
+      "entity_name": "Jordan",
+      "category": "people",
+      "context": "Meeting: Developer Success Weekly Sync - Engineering & Product Updates\nDate: 2026-01-27 @ 12:08\n\n\u2022 Clerk Skills (AI-enabled feature)\n\u2022   \u2022 Shipping delayed this week due to iOS integration\n\u2022 Docs publ",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771374935.4621682
+    },
+    {
+      "key": "projects:jbott",
+      "entity_name": "Jbott",
+      "category": "projects",
+      "context": "Meeting: Developer Success Weekly Sync - Engineering & Product Updates\nDate: 2026-01-27 @ 12:08\n\n\u2022 Clerk Skills (AI-enabled feature)\n\u2022   \u2022 Shipping delayed this week due to iOS integration\n\u2022 Docs publ",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771374935.4633915
+    },
+    {
+      "key": "concepts:golden cookie award",
+      "entity_name": "Golden Cookie Award",
+      "category": "concepts",
+      "context": "Meeting: Roy transfer options and team performance review - Current Team Performance Updates\nDate: 2026-01-23 @ 13:25\n\n\u2022 Jacob (OAuth focus) - tentatively off the rocks\n\u2022   \u2022 Handling thorny OAuth iss",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771374974.5679555
+    },
+    {
+      "key": "tools:sonnet",
+      "entity_name": "Sonnet",
+      "category": "tools",
+      "context": "The user highlighted that context limit issues are specific to Sonnet, as they haven't encountered this with Opus.",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771375131.091701
+    },
+    {
+      "key": "tools:opus",
+      "entity_name": "Opus",
+      "category": "tools",
+      "context": "The user highlighted that context limit issues are specific to Sonnet, as they haven't encountered this with Opus.",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771375131.0934474
+    },
+    {
+      "key": "people:rob",
+      "entity_name": "Rob",
+      "category": "people",
+      "context": "# Daily Summary \u2014 Feb 17, 2026\n\n**Jeff spent the day clearing bandwidth ahead of the March 16 Machine Tokens launch, systematically shedding projects, automating processes, and fixing infrastructure b",
+      "question_type": "identity",
+      "memory_id": null,
+      "queued_at": 1771398926.4200337
+    }
+  ],
+  "resolved": {}
+}

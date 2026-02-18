@@ -6,7 +6,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 AUTOMEM_ENDPOINT="${AUTOMEM_ENDPOINT:-http://localhost:8001}"
-AUTOMEM_API_TOKEN="${AUTOMEM_API_TOKEN:-olly-automem-2026}"
+AUTOMEM_API_TOKEN="${AUTOMEM_API_TOKEN:-86d634aaa78b4376bad0935e09a4ee4c76c8cbb30280c60d}"
 SESSION_DIR="${CLAWDBOT_SESSION_DIR:-$HOME/.clawdbot/agents/main/sessions}"
 STATE_FILE="$HOME/.clawdbot/automem-sync-state.json"
 ONCE=false
